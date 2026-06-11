@@ -39,7 +39,8 @@
 - ✅ **Manajemen Aset** — CRUD lengkap aset laptop (tambah, lihat, edit, hapus)
 - ✅ **Riwayat Perbaikan** — Pencatatan history perbaikan per aset
 - ✅ **Dashboard Stats** — Ringkasan kondisi aset secara real-time
-- ✅ **REST API** — Semua interaksi data melalui JSON API endpoint
+- ✅ **REST API** — Semua interaksi data melalui JSON API endpoint dengan pagination
+- ✅ **API Auth Guard** — Akses API tanpa session mengembalikan JSON 401, bukan redirect HTML
 - ✅ **Laporan PDF** — Generate laporan keseluruhan aset langsung dari browser
 - ✅ **Soft Delete** — Data aset yang dihapus tetap tersimpan untuk audit trail
 
@@ -462,7 +463,7 @@ Base URL: `http://project-abhati.localhost/api`
 
 | Method | Endpoint | Deskripsi |
 |--------|----------|-----------|
-| `GET` | `/assets` | Ambil semua aset + jumlah perbaikan |
+| `GET` | `/assets` | Ambil semua aset + jumlah perbaikan (support pagination: `?page=1&per_page=15`) |
 | `GET` | `/assets/:id` | Detail satu aset |
 | `POST` | `/assets` | Tambah aset baru |
 | `PUT` | `/assets/:id` | Update aset |
@@ -481,7 +482,7 @@ Base URL: `http://project-abhati.localhost/api`
 
 | Method | Endpoint | Deskripsi |
 |--------|----------|-----------|
-| `GET` | `/report/summary` | Summary statistik + semua aset |
+| `GET` | `/report/summary` | Summary statistik kondisi aset |
 
 #### Contoh Request — POST `/api/assets`
 
@@ -516,7 +517,15 @@ Base URL: `http://project-abhati.localhost/api`
       "total_perbaikan": 2,
       "created_at": "2024-01-15 09:00:00"
     }
-  ]
+  ],
+  "pager": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 100,
+    "total_pages": 7,
+    "has_previous": false,
+    "has_next": true
+  }
 }
 ```
 
@@ -555,7 +564,10 @@ cp env .env
 # 5. Jalankan migrasi database
 php spark migrate
 
-# 6. Buat akun admin pertama
+# 6. (Opsional) Seed data dummy 100 aset untuk testing
+php spark db:seed DummyAssetSeeder
+
+# 7. Buat akun admin pertama
 php spark shield:user create
 
 # 7. Akses aplikasi

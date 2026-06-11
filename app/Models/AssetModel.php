@@ -23,15 +23,14 @@ class AssetModel extends Model
         'harga_beli',
     ];
 
-    public function withRepairCount(): array
-    {
-        return $this->db->table('laptop_assets la')
-            ->select('la.*, COUNT(rh.id) as total_perbaikan')
-            ->join('repair_history rh', 'rh.asset_id = la.id', 'left')
-            ->where('la.deleted_at', null)
-            ->groupBy('la.id')
-            ->orderBy('la.created_at', 'DESC')
-            ->get()
-            ->getResultArray();
-    }
+
+public function withRepairCount(int $perPage = 15, int $page = 1): array
+{
+    return $this
+        ->select('laptop_assets.*, COUNT(repair_history.id) as total_perbaikan')
+        ->join('repair_history', 'repair_history.asset_id = laptop_assets.id', 'left')
+        ->groupBy('laptop_assets.id')
+        ->orderBy('laptop_assets.created_at', 'DESC')
+        ->paginate($perPage, 'default', $page);
+}
 }

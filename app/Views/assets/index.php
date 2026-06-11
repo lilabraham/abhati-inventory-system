@@ -75,7 +75,8 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th class="ps-4">Kode Aset</th>
+                        <th class="ps-4">#</th>
+                        <th>Kode Aset</th>
                         <th>Merk / Model</th>
                         <th>Pengguna</th>
                         <th>Lokasi</th>
@@ -94,6 +95,8 @@
                 </tbody>
             </table>
         </div>
+        <!-- Pagination -->
+        <div id="paginationContainer" class="px-3 pb-3"></div>
     </div>
 </div>
 
@@ -167,56 +170,103 @@
         return `<span class="badge bg-${c.badge}">${c.label}</span>`;
     };
 
+// ─── State ───────────────────────────────────────────────────
+    let currentPage = 1;
+    const perPage   = 15;
+
+    // ─── Spinner ─────────────────────────────────────────────────
+    const showSpinner = () => {
+        document.getElementById('assetTableBody').innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-5 text-muted">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    Memuat data...
+                </td>
+            </tr>`;
+    };
+    const hideSpinner = () => {}; // data sudah dirender oleh renderTable
+
     // ─── Load Assets ─────────────────────────────────────────────
-    async function loadAssets() {
-        const res = await apiFetch('/api/assets');
+    async function loadAssets(page = 1) {
+        currentPage = page;
+        showSpinner();
+
+        const res = await apiFetch(`/api/assets?page=${page}&per_page=${perPage}`);
         if (!res) return;
 
-        const json  = await res.json();
+        const data = await res.json();
+
+        renderTable(data.data);
+        renderPagination(data.pager);
+    }
+
+    function renderTable(assets) {
         const tbody = document.getElementById('assetTableBody');
-        const data  = json.data ?? [];
-
-        // Stats
-        document.getElementById('statTotal').textContent     = data.length;
-        document.getElementById('statBaik').textContent      = data.filter(a => a.kondisi === 'baik').length;
-        document.getElementById('statRusak').textContent     = data.filter(a => a.kondisi === 'rusak').length;
-        document.getElementById('statPerbaikan').textContent = data.filter(a => a.kondisi === 'dalam_perbaikan').length;
-
-        if (!data.length) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5">
-                <i class="bi bi-inbox fs-2 d-block mb-2"></i>Belum ada data aset
-            </td></tr>`;
+        if (!assets || assets.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Tidak ada data.</td></tr>`;
             return;
         }
-
-        tbody.innerHTML = data.map(a => `
+        tbody.innerHTML = assets.map((a, i) => `
             <tr>
-                <td class="ps-4"><code class="text-primary fw-semibold">${a.kode_aset}</code></td>
-                <td>
-                    <div class="fw-semibold">${a.merk}</div>
-                    <small class="text-muted">${a.model}</small>
-                </td>
-                <td>${a.pengguna ?? '<span class="text-muted">-</span>'}</td>
-                <td><small>${a.lokasi ?? '<span class="text-muted">-</span>'}</small></td>
+                <td class="ps-4">${((currentPage - 1) * perPage) + i + 1}</td>
+                <td>${a.kode_aset}</td>
+                <td>${a.merk} ${a.model}</td>
+                <td>${a.pengguna ?? '-'}</td>
+                <td>${a.lokasi ?? '-'}</td>
                 <td>${kondisiBadge(a.kondisi)}</td>
-                <td class="text-center">
-                    <span class="badge bg-info text-dark">${a.total_perbaikan}x</span>
-                </td>
+                <td class="text-center">${a.total_perbaikan}</td>
                 <td class="text-center pe-4">
-                    <div class="d-flex gap-1 justify-content-center">
-                        <a href="/assets/${a.id}" class="btn btn-sm btn-outline-primary" title="Detail">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                        <button class="btn btn-sm btn-outline-warning" onclick="openEditModal(${a.id})" title="Edit">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteAsset(${a.id}, '${a.kode_aset}')" title="Hapus">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
+                    <a href="/assets/${a.id}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
+                    <button class="btn btn-sm btn-warning" onclick="openEditModal(${a.id})"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAsset(${a.id}, '${a.kode_aset}')"><i class="bi bi-trash"></i></button>
                 </td>
             </tr>
         `).join('');
+    }
+
+    function renderPagination(pager) {
+        const container = document.getElementById('paginationContainer');
+        if (!pager || pager.total_pages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
+        const { current_page, total_pages, has_previous, has_next, total } = pager;
+
+        container.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <small class="text-muted">
+                    Halaman ${current_page} dari ${total_pages} &mdash; Total ${total} aset
+                </small>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item ${!has_previous ? 'disabled' : ''}">
+                        <button class="page-link" onclick="loadAssets(${current_page - 1})">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    </li>
+                    ${buildPageNumbers(current_page, total_pages)}
+                    <li class="page-item ${!has_next ? 'disabled' : ''}">
+                        <button class="page-link" onclick="loadAssets(${current_page + 1})">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>`;
+    }
+
+    function buildPageNumbers(current, total) {
+        let start = Math.max(1, current - 2);
+        let end   = Math.min(total, start + 4);
+        if (end - start < 4) start = Math.max(1, end - 4);
+
+        let pages = [];
+        for (let i = start; i <= end; i++) {
+            pages.push(`
+                <li class="page-item ${i === current ? 'active' : ''}">
+                    <button class="page-link" onclick="loadAssets(${i})">${i}</button>
+                </li>`);
+        }
+        return pages.join('');
     }
 
     // ─── Tambah Asset ────────────────────────────────────────────
@@ -242,6 +292,7 @@
             bootstrap.Modal.getInstance(document.getElementById('modalTambah')).hide();
             e.target.reset();
             loadAssets();
+            loadStats();
             showToast('Asset berhasil ditambahkan!', 'success');
         } else {
             const errMsg = Object.values(json.errors ?? {}).join('\n');
@@ -344,6 +395,7 @@
             if (res.ok) {
                 bootstrap.Modal.getInstance(document.getElementById('modalEdit')).hide();
                 loadAssets();
+                loadStats();
                 showToast('Asset berhasil diperbarui!', 'success');
             } else {
                 const json   = await res.json();
@@ -362,13 +414,34 @@
 
         if (res.ok) {
             loadAssets();
+            loadStats();
             showToast(`Asset ${kode} berhasil dihapus.`, 'success');
         } else {
             showToast('Gagal menghapus asset.', 'danger');
         }
     }
 
+// ─── Load Stats ──────────────────────────────────────────────
+    async function loadStats() {
+        const res = await apiFetch('/api/report/summary');
+        if (!res) return;
+
+        const json  = await res.json();
+        const d     = json.data;
+
+        // Bangun lookup: { baik: 51, rusak: 13, ... }
+        const byKondisi = Object.fromEntries(
+            d.kondisi_stats.map(k => [k.kondisi, parseInt(k.total)])
+        );
+
+        document.getElementById('statTotal').textContent    = d.total_aset ?? '-';
+        document.getElementById('statBaik').textContent     = byKondisi['baik']            ?? 0;
+        document.getElementById('statRusak').textContent    = byKondisi['rusak']           ?? 0;
+        document.getElementById('statPerbaikan').textContent = byKondisi['dalam_perbaikan'] ?? 0;
+    }
+
     // Init
     loadAssets();
+    loadStats();
 </script>
 <?= $this->endSection() ?>

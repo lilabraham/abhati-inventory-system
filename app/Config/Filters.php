@@ -23,6 +23,7 @@ class Filters extends BaseConfig
         'auth-rates'    => \CodeIgniter\Shield\Filters\AuthRates::class,
         'group'         => \CodeIgniter\Shield\Filters\GroupFilter::class,
         'permission'    => \CodeIgniter\Shield\Filters\PermissionFilter::class,
+        'apiAuth'       => \App\Filters\ApiAuthFilter::class,
     ];
 
     public array $globals = [
@@ -35,6 +36,7 @@ class Filters extends BaseConfig
                     'register*',
                     'logout',
                     'auth*',
+                    'api/*',
                 ],
             ],
             'csrf' => [
@@ -50,5 +52,7 @@ class Filters extends BaseConfig
 
     public array $methods = [];
 
-    public array $filters = [];
+    public array $filters = [
+        'apiAuth' => ['before' => ['api/*']],
+    ];
 }

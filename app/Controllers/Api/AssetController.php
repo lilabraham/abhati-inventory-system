@@ -16,12 +16,26 @@ class AssetController extends BaseController
     }
 
     public function index(): ResponseInterface
-    {
-        return $this->response->setJSON([
-            'status' => 'success',
-            'data'   => $this->model->withRepairCount(),
-        ]);
-    }
+{
+    $page    = (int) ($this->request->getGet('page') ?? 1);
+    $perPage = (int) ($this->request->getGet('per_page') ?? 15);
+
+    $assets = $this->model->withRepairCount($perPage, $page);
+    $pager  = $this->model->pager;
+
+    return $this->response->setJSON([
+        'status' => 'success',
+        'data'   => $assets,
+        'pager'  => [
+            'current_page' => $pager->getCurrentPage(),
+            'per_page'     => $perPage,
+            'total'        => $pager->getTotal(),
+            'total_pages'  => $pager->getPageCount(),
+            'has_previous' => $page > 1,
+            'has_next'     => $page < $pager->getPageCount(),
+        ],
+    ]);
+}
 
     public function show(int $id): ResponseInterface
     {
