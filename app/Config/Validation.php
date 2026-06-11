@@ -38,7 +38,21 @@ class Validation extends BaseConfig
         'single' => 'CodeIgniter\Validation\Views\single',
     ];
 
-    // --------------------------------------------------------------------
-    // Rules
-    // --------------------------------------------------------------------
+    // --- Aturan Validasi Baru untuk Login (Username) ---
+    public array $login = [
+        'username' => [
+            'label' => 'Username',
+            'rules' => 'required|max_length[30]',
+            'errors' => [
+                'required' => 'Username wajib diisi.',
+            ]
+        ],
+        'password' => [
+            'label' => 'Password',
+            'rules' => 'required',
+            'errors' => [
+                'required' => 'Password wajib diisi.',
+            ]
+        ],
+    ];
 }

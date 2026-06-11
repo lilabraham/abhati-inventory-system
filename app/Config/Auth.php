@@ -46,12 +46,12 @@ class Auth extends ShieldAuth
      * --------------------------------------------------------------------
      */
     public array $views = [
-        'login'                       => '\CodeIgniter\Shield\Views\login',
-        'register'                    => '\CodeIgniter\Shield\Views\register',
-        'layout'                      => '\CodeIgniter\Shield\Views\layout',
-        'action_email_2fa'            => '\CodeIgniter\Shield\Views\email_2fa_show',
-        'action_email_2fa_verify'     => '\CodeIgniter\Shield\Views\email_2fa_verify',
-        'action_email_2fa_email'      => '\CodeIgniter\Shield\Views\Email\email_2fa_email',
+        'login'                       => '\App\Views\auth\login',
+        'register'                    => '\App\Views\auth\register',
+        'layout'                      => '\App\Views\auth\layout',
+        'action_email_2fa'            => '\App\Views\auth\email_2fa_show',
+        'action_email_2fa_verify'     => '\App\Views\auth\email_2fa_verify',
+        'action_email_2fa_email'      => '\App\Views\auth\Email\email_2fa_email',
         'action_email_activate_show'  => '\CodeIgniter\Shield\Views\email_activate_show',
         'action_email_activate_email' => '\CodeIgniter\Shield\Views\Email\email_activate_email',
         'magic-link-login'            => '\CodeIgniter\Shield\Views\magic_link_form',
@@ -285,7 +285,7 @@ class Auth extends ShieldAuth
      */
     public array $validFields = [
         'email',
-        // 'username',
+        'username',
     ];
 
     /**
