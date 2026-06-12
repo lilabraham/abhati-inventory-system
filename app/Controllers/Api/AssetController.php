@@ -1,5 +1,5 @@
 <?php
-
+// File: app/Controllers/api/AssetController.php
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;

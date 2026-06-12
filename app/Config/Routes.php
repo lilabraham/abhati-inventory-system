@@ -11,9 +11,9 @@
     // WEB ROUTES — dilindungi global session filter
     // ============================================================
     $routes->get('/', 'AssetController::index');
-    $routes->get('assets', 'AssetController::index');
-    $routes->get('assets/report', 'AssetController::report');
-    $routes->get('assets/(:num)', 'AssetController::show/$1');
+    $routes->get('data-aset', 'AssetController::index'); // 
+    $routes->get('data-aset/report', 'AssetController::report'); //
+    $routes->get('data-aset/(:num)', 'AssetController::show/$1'); // 
 
     // ============================================================
     // API ROUTES — dilindungi global session filter
@@ -35,4 +35,6 @@
 
         // Report
         $routes->get('report/summary', 'ReportController::summary');
+        $routes->get('report/assets', 'ReportController::assets');
+
     });
