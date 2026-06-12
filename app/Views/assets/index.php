@@ -2,268 +2,343 @@
 <?= $this->section('content') ?>
 
 <style>
-    /* ── Soft shadow utility ── */
-    .shadow-soft {
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    /* ════════════════════════════════════════════════════
+       DESIGN TOKENS
+    ════════════════════════════════════════════════════ */
+    :root {
+        --clr-bg:        #f0f2f5;
+        --clr-surface:   #ffffff;
+        --clr-border:    #eaecf0;
+        --clr-sep:       #f2f4f7;
+
+        --clr-txt-900:   #0d1117;
+        --clr-txt-600:   #4b5563;
+        --clr-txt-400:   #9ca3af;
+
+        --clr-blue:      #3b82f6;
+        --clr-green:     #22c55e;
+        --clr-red:       #ef4444;
+        --clr-amber:     #f59e0b;
+
+        --radius-card:   18px;
+        --radius-btn:    9px;
+        --shadow-card:   0 0 0 1px rgba(0,0,0,.045),
+                         0 2px 4px  rgba(0,0,0,.04),
+                         0 10px 28px rgba(0,0,0,.07);
+        --shadow-hover:  0 0 0 1px rgba(0,0,0,.05),
+                         0 4px 8px  rgba(0,0,0,.06),
+                         0 16px 36px rgba(0,0,0,.1);
+        --transition:    all .18s cubic-bezier(.4,0,.2,1);
     }
 
-    /* ── Stats cards ── */
-    .stat-card .icon-wrap {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
+    /* ════════════════════════════════════════════════════
+       PAGE HEADER
+    ════════════════════════════════════════════════════ */
+    .page-title {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--clr-txt-900);
+        letter-spacing: -0.45px;
+        line-height: 1.2;
+        margin: 0 0 4px;
+    }
+    .page-subtitle {
+        font-size: 12.5px;
+        color: var(--clr-txt-400);
+        font-weight: 400;
+        margin: 0;
+    }
+
+    /* ── CTA Button ── */
+    .btn-tambah {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: var(--clr-txt-900);
+        color: #fff;
+        border: none;
+        padding: 9px 18px;
+        border-radius: var(--radius-btn);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: -0.1px;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .btn-tambah:hover  { background: #1a2232; color: #fff; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.18); }
+    .btn-tambah:active { transform: translateY(0); box-shadow: none; }
+
+    /* ════════════════════════════════════════════════════
+       STAT CARDS
+    ════════════════════════════════════════════════════ */
+    .stat-card {
+        background: var(--clr-surface) !important;
+        border: none !important;
+        border-radius: var(--radius-card) !important;
+        box-shadow: var(--shadow-card) !important;
+        transition: var(--transition);
+        overflow: hidden;
+        position: relative;
+    }
+    .stat-card:hover {
+        box-shadow: var(--shadow-hover) !important;
+        transform: translateY(-2px);
+    }
+    .stat-card .card-body {
+        padding: 22px 22px !important;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    /* Circular icon container */
+    .icon-circle {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        font-size: 1.3rem;
+        font-size: 1.25rem;
+        /* Each card overrides --ic-bg & --ic-clr */
+        background: var(--ic-bg);
     }
+    .icon-circle i { color: var(--ic-clr); }
 
-    .stat-card .stat-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        line-height: 1.1;
-        letter-spacing: -0.5px;
-        color: #0f172a;
+    /* Numbers */
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -1.5px;
+        color: var(--clr-txt-900);
+        font-variant-numeric: tabular-nums;
     }
-
-    .stat-card .stat-label {
-        font-size: 0.72rem;
-        color: #94a3b8;
+    .stat-label {
+        font-size: 11.5px;
+        color: var(--clr-txt-400);
         font-weight: 500;
-        margin-top: 3px;
+        margin-top: 5px;
+        letter-spacing: 0.01em;
     }
 
-    /* ── Table card ── */
+    /* ════════════════════════════════════════════════════
+       TABLE CARD SHELL
+    ════════════════════════════════════════════════════ */
     .table-card {
-        background: #fff;
-        border-radius: 18px;
+        background: var(--clr-surface);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
         overflow: hidden;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
+    /* Card header bar */
     .table-card-header {
-        padding: 16px 20px;
-        border-bottom: 1px solid #f1f4f8;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: #fff;
+        padding: 18px 24px 17px;
+        border-bottom: 1px solid var(--clr-sep);
+        background: var(--clr-surface);
     }
-
     .table-card-header-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: #1e293b;
         display: flex;
         align-items: center;
-        gap: 8px;
-    }
-
-    /* ── Table modern ── */
-    #assetTableBody~thead th,
-    .asset-table thead th {
-        background: #f8fafc;
-    }
-
-    .asset-table thead th {
-        background: #f8fafc;
-        color: #64748b;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.07em;
-        border-bottom: 1px solid #e9edf2;
-        border-top: none;
-        padding: 13px 14px;
-        white-space: nowrap;
-    }
-
-    .asset-table tbody tr {
-        border-bottom: 1px solid #f1f4f8;
-        transition: background 0.15s;
-    }
-
-    .asset-table tbody tr:last-child {
-        border-bottom: none;
-    }
-
-    .asset-table tbody tr:hover {
-        background: #f8fafc;
-    }
-
-    .asset-table tbody td {
-        padding: 12px 14px;
-        vertical-align: middle;
-        border: none;
+        gap: 9px;
         font-size: 13.5px;
-        color: #374151;
+        font-weight: 700;
+        color: var(--clr-txt-900);
+        letter-spacing: -0.15px;
+    }
+    .table-card-header-title .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--clr-blue);
+        flex-shrink: 0;
+    }
+    .table-card-header small {
+        font-size: 11.5px;
+        color: var(--clr-txt-400);
     }
 
-    /* ── Soft badges ── */
-    .badge-soft {
+    /* ════════════════════════════════════════════════════
+       TABLE — CLEAN MINIMAL
+    ════════════════════════════════════════════════════ */
+    .asset-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    /* thead: white bg, all-caps muted labels */
+    .asset-table thead th {
+        background: var(--clr-surface);
+        color: var(--clr-txt-400);
         font-size: 11px;
         font-weight: 600;
-        padding: 4px 10px;
-        border-radius: 20px;
-        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        padding: 11px 14px;
+        border-top: none;
+        border-bottom: 1px solid var(--clr-sep) !important;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    /* tbody rows */
+    .asset-table tbody tr {
+        border-bottom: 1px solid var(--clr-sep);
+        transition: background .12s;
+    }
+    .asset-table tbody tr:last-child { border-bottom: none; }
+    .asset-table tbody tr:hover      { background: #fafbfc; }
+    .asset-table tbody td {
+        padding: 15px 14px;
+        border: none !important;
+        vertical-align: middle;
+        font-size: 13.5px;
+        color: var(--clr-txt-600);
+    }
+
+    /* Kode aset mono pill */
+    .kode-pill {
         display: inline-block;
+        background: #eff6ff;
+        color: #2563eb;
+        padding: 3px 9px;
+        border-radius: 6px;
+        font-size: 11.5px;
+        font-family: ui-monospace, 'Cascadia Code', monospace;
+        font-weight: 700;
+        letter-spacing: 0.02em;
     }
 
-    .badge-soft-success {
-        background: #dcfce7;
-        color: #16a34a;
+    /* Merk/model cell */
+    .cell-merk  { font-weight: 600; color: var(--clr-txt-900); }
+    .cell-model { font-size: 12.5px; color: var(--clr-txt-400); margin-top: 1px; }
+
+    /* Perbaikan count chip */
+    .chip-perbaikan {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #f3f4f6;
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-variant-numeric: tabular-nums;
     }
 
-    .badge-soft-danger {
-        background: #fee2e2;
-        color: #dc2626;
+    /* ════════════════════════════════════════════════════
+       SOFT PILL BADGES — WCAG AA text contrast
+    ════════════════════════════════════════════════════ */
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 4px 11px;
+        border-radius: 999px;      /* true pill */
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+    }
+    .badge-soft::before {
+        content: '';
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: currentColor;
     }
 
-    .badge-soft-warning {
-        background: #fef9c3;
-        color: #ca8a04;
-    }
+    .badge-soft-success   { background: #dcfce7; color: #15803d; }
+    .badge-soft-danger    { background: #fee2e2; color: #b91c1c; }
+    .badge-soft-warning   { background: #fef3c7; color: #92400e; }  /* dark amber — WCAG AA */
+    .badge-soft-secondary { background: #f3f4f6; color: #4b5563; }
 
-    .badge-soft-secondary {
-        background: #f1f5f9;
-        color: #64748b;
-    }
-
-    /* ── Minimal action buttons ── */
+    /* ════════════════════════════════════════════════════
+       GHOST ACTION BUTTONS
+    ════════════════════════════════════════════════════ */
     .btn-action {
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
         padding: 0;
         border-radius: 8px;
         border: none;
-        background: #f1f5f9;
-        color: #64748b;
+        background: transparent;        /* ghost — no bg by default */
+        color: #c4cdd6;                 /* very muted icon */
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 14px;
-        transition: background 0.15s, color 0.15s, transform 0.1s;
-        text-decoration: none;
-    }
-
-    .btn-action:hover {
-        transform: translateY(-1px);
-    }
-
-    .btn-action-view:hover {
-        background: #dbeafe;
-        color: #2563eb;
-    }
-
-    .btn-action-edit:hover {
-        background: #fef3c7;
-        color: #d97706;
-    }
-
-    .btn-action-delete:hover {
-        background: #fee2e2;
-        color: #dc2626;
-    }
-
-    .btn-action:active {
-        transform: translateY(0);
-    }
-
-    /* ── Tambah Aset button ── */
-    .btn-tambah {
-        background: #1e293b;
-        color: #fff;
-        border: none;
-        padding: 9px 18px;
-        border-radius: 10px;
         font-size: 13.5px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        transition: background 0.2s, transform 0.15s;
+        cursor: pointer;
+        text-decoration: none;
+        transition: var(--transition);
+        line-height: 1;
     }
+    .btn-action:hover { transform: translateY(-1px); }
+    .btn-action:active { transform: translateY(0); }
 
-    .btn-tambah:hover {
-        background: #0f172a;
-        color: #fff;
-        transform: translateY(-1px);
-    }
+    /* Color blooms on hover */
+    .btn-action-view:hover   { background: #eff6ff; color: #2563eb; }
+    .btn-action-edit:hover   { background: #fffbeb; color: #d97706; }
+    .btn-action-delete:hover { background: #fef2f2; color: #dc2626; }
 
-    .btn-tambah:active {
-        transform: translateY(0);
-    }
+    /* ════════════════════════════════════════════════════
+       PAGINATION
+    ════════════════════════════════════════════════════ */
+    #paginationContainer { border-top: 1px solid var(--clr-sep); }
 
-    /* ── Pagination ── */
     #paginationContainer .page-link {
         border-radius: 8px;
         font-size: 12.5px;
-        border-color: #e2e8f0;
-        color: #475569;
+        border-color: var(--clr-border);
+        color: var(--clr-txt-600);
         padding: 5px 11px;
+        transition: var(--transition);
     }
-
     #paginationContainer .page-item.active .page-link {
-        background: #1e293b;
-        border-color: #1e293b;
+        background: var(--clr-txt-900);
+        border-color: var(--clr-txt-900);
         color: #fff;
+        box-shadow: 0 2px 8px rgba(13,17,23,.25);
     }
-
-    #paginationContainer .page-link:hover {
-        background: #f1f5f9;
-        color: #1e293b;
+    #paginationContainer .page-link:hover:not(.active) {
+        background: var(--clr-sep);
+        color: var(--clr-txt-900);
+        border-color: var(--clr-border);
     }
-
-    #paginationContainer .pagination {
-        gap: 3px;
-    }
-
-    /* ── Kode aset pill ── */
-    .kode-pill {
-        background: #f1f5f9;
-        color: #3b82f6;
-        padding: 3px 9px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-family: monospace;
-        font-weight: 600;
-    }
-
-    /* ── Page title ── */
-    .page-title {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #0f172a;
-        letter-spacing: -0.3px;
-        margin-bottom: 2px;
-    }
-
-    .page-subtitle {
-        font-size: 13px;
-        color: #94a3b8;
-    }
+    #paginationContainer .pagination { gap: 3px; }
 </style>
 
-<!-- ── Page Header ── -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<!-- ══════════════════════════════════════════════════════
+     PAGE HEADER
+══════════════════════════════════════════════════════ -->
+<div class="d-flex justify-content-between align-items-start mb-4 gap-3">
     <div>
-        <div class="page-title">Aset Laptop</div>
-        <div class="page-subtitle">Manajemen inventaris laptop kantor Abhati Group</div>
+        <h1 class="page-title">Aset Laptop</h1>
+        <p class="page-subtitle">Manajemen inventaris laptop kantor Abhati Group</p>
     </div>
-    <button class="btn-tambah"
-        data-bs-toggle="modal" data-bs-target="#modalTambah">
+    <button class="btn-tambah" data-bs-toggle="modal" data-bs-target="#modalTambah">
         <i class="bi bi-plus-lg"></i> Tambah Aset
     </button>
 </div>
 
-<!-- ── Stats Cards ── -->
+<!-- ══════════════════════════════════════════════════════
+     STAT CARDS
+══════════════════════════════════════════════════════ -->
 <div class="row g-3 mb-4" id="statsCards">
-    <div class="col-md-3">
-        <div class="card stat-card border-0 rounded-4 shadow-soft h-100">
-            <div class="card-body d-flex align-items-center gap-3 p-4">
-                <div class="icon-wrap" style="background:rgba(59,130,246,0.1);">
-                    <i class="bi bi-laptop" style="color:#3b82f6;"></i>
+
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="icon-circle" style="--ic-bg:rgba(59,130,246,.1); --ic-clr:#3b82f6;">
+                    <i class="bi bi-laptop"></i>
                 </div>
                 <div>
                     <div class="stat-value" id="statTotal">-</div>
@@ -272,11 +347,12 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card border-0 rounded-4 shadow-soft h-100">
-            <div class="card-body d-flex align-items-center gap-3 p-4">
-                <div class="icon-wrap" style="background:rgba(34,197,94,0.1);">
-                    <i class="bi bi-check-circle" style="color:#22c55e;"></i>
+
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="icon-circle" style="--ic-bg:rgba(34,197,94,.1); --ic-clr:#22c55e;">
+                    <i class="bi bi-check-circle"></i>
                 </div>
                 <div>
                     <div class="stat-value" id="statBaik">-</div>
@@ -285,11 +361,12 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card border-0 rounded-4 shadow-soft h-100">
-            <div class="card-body d-flex align-items-center gap-3 p-4">
-                <div class="icon-wrap" style="background:rgba(239,68,68,0.1);">
-                    <i class="bi bi-exclamation-triangle" style="color:#ef4444;"></i>
+
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="icon-circle" style="--ic-bg:rgba(239,68,68,.1); --ic-clr:#ef4444;">
+                    <i class="bi bi-exclamation-triangle"></i>
                 </div>
                 <div>
                     <div class="stat-value" id="statRusak">-</div>
@@ -298,11 +375,12 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card border-0 rounded-4 shadow-soft h-100">
-            <div class="card-body d-flex align-items-center gap-3 p-4">
-                <div class="icon-wrap" style="background:rgba(234,179,8,0.1);">
-                    <i class="bi bi-tools" style="color:#eab308;"></i>
+
+    <div class="col-6 col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="icon-circle" style="--ic-bg:rgba(245,158,11,.1); --ic-clr:#f59e0b;">
+                    <i class="bi bi-tools"></i>
                 </div>
                 <div>
                     <div class="stat-value" id="statPerbaikan">-</div>
@@ -311,29 +389,34 @@
             </div>
         </div>
     </div>
+
 </div>
 
-<!-- ── Table Card ── -->
+<!-- ══════════════════════════════════════════════════════
+     TABLE CARD
+══════════════════════════════════════════════════════ -->
 <div class="table-card">
+
     <div class="table-card-header">
         <div class="table-card-header-title">
-            <i class="bi bi-table text-primary" style="font-size:15px;"></i>
+            <span class="dot"></span>
             Daftar Aset Laptop
         </div>
-        <small class="text-muted" style="font-size:12px;">Data diperbarui otomatis</small>
+        <small>Data diperbarui otomatis</small>
     </div>
+
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 asset-table">
+        <table class="table align-middle mb-0 asset-table">
             <thead>
                 <tr>
-                    <th class="ps-4" style="width:52px;">#</th>
+                    <th class="ps-4" style="width:48px;">#</th>
                     <th>Kode Aset</th>
                     <th>Merk / Model</th>
                     <th>Pengguna</th>
                     <th>Lokasi</th>
                     <th>Kondisi</th>
-                    <th class="text-center" style="width:90px;">Perbaikan</th>
-                    <th class="text-center pe-4" style="width:110px;">Aksi</th>
+                    <th class="text-center" style="width:96px;">Perbaikan</th>
+                    <th class="text-center pe-4" style="width:106px;">Aksi</th>
                 </tr>
             </thead>
             <tbody id="assetTableBody">
@@ -346,37 +429,43 @@
             </tbody>
         </table>
     </div>
-    <div id="paginationContainer" class="px-4 py-3" style="border-top:1px solid #f1f4f8;"></div>
+
+    <div id="paginationContainer" class="px-4 py-3"></div>
+
 </div>
 
-<!-- ── Modal Tambah ── -->
+<!-- ══════════════════════════════════════════════════════
+     MODAL TAMBAH
+══════════════════════════════════════════════════════ -->
 <div class="modal fade" id="modalTambah" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="modalTambahLabel">
+        <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
+            <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
+                <h5 class="modal-title fw-bold fs-6" id="modalTambahLabel">
                     <i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Aset Laptop
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body px-4 py-4">
                 <?= view('assets/_form') ?>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ── Modal Edit ── -->
+<!-- ══════════════════════════════════════════════════════
+     MODAL EDIT
+══════════════════════════════════════════════════════ -->
 <div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="modalEditLabel">
+        <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
+            <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
+                <h5 class="modal-title fw-bold fs-6" id="modalEditLabel">
                     <i class="bi bi-pencil-square me-2 text-warning"></i>Edit Aset Laptop
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="editFormContainer">
+            <div class="modal-body px-4 py-4" id="editFormContainer">
                 <div class="text-center py-4">
                     <div class="spinner-border text-primary" role="status"></div>
                 </div>
@@ -385,11 +474,14 @@
     </div>
 </div>
 
-<!-- ── Toast ── -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
-    <div id="toastNotif" class="toast align-items-center border-0" role="alert">
+<!-- ══════════════════════════════════════════════════════
+     TOAST
+══════════════════════════════════════════════════════ -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
+    <div id="toastNotif" class="toast align-items-center border-0" role="alert"
+         style="border-radius:12px; min-width:260px; box-shadow:0 8px 32px rgba(0,0,0,.18);">
         <div class="d-flex">
-            <div class="toast-body fw-semibold" id="toastMessage"></div>
+            <div class="toast-body fw-semibold" id="toastMessage" style="font-size:13.5px;"></div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     </div>
@@ -400,22 +492,10 @@
 <script>
     // ─── Helpers ────────────────────────────────────────────────
     const kondisiConfig = {
-        baik: {
-            badge: 'success',
-            label: 'Baik'
-        },
-        rusak: {
-            badge: 'danger',
-            label: 'Rusak'
-        },
-        dalam_perbaikan: {
-            badge: 'warning',
-            label: 'Dalam Perbaikan'
-        },
-        tidak_aktif: {
-            badge: 'secondary',
-            label: 'Tidak Aktif'
-        },
+        baik: { badge: 'success', label: 'Baik' },
+        rusak: { badge: 'danger', label: 'Rusak' },
+        dalam_perbaikan: { badge: 'warning', label: 'Dalam Perbaikan' },
+        tidak_aktif: { badge: 'secondary', label: 'Tidak Aktif' },
     };
 
     const showToast = (message, type = 'success') => {
@@ -423,17 +503,15 @@
         const msg = document.getElementById('toastMessage');
         el.className = `toast align-items-center border-0 text-white bg-${type}`;
         msg.textContent = message;
-        new bootstrap.Toast(el, {
-            delay: 3000
-        }).show();
+        new bootstrap.Toast(el, { delay: 3000 }).show();
     };
 
     const kondisiBadge = k => {
         const map = {
-            baik: '<span class="badge-soft badge-soft-success">Baik</span>',
-            rusak: '<span class="badge-soft badge-soft-danger">Rusak</span>',
+            baik:            '<span class="badge-soft badge-soft-success">Baik</span>',
+            rusak:           '<span class="badge-soft badge-soft-danger">Rusak</span>',
             dalam_perbaikan: '<span class="badge-soft badge-soft-warning">Dalam Perbaikan</span>',
-            tidak_aktif: '<span class="badge-soft badge-soft-secondary">Tidak Aktif</span>',
+            tidak_aktif:     '<span class="badge-soft badge-soft-secondary">Tidak Aktif</span>',
         };
         return map[k] ?? `<span class="badge-soft badge-soft-secondary">${k}</span>`;
     };
@@ -481,23 +559,25 @@
         }
         tbody.innerHTML = assets.map((a, i) => `
             <tr>
-                <td class="ps-4 text-muted" style="font-size:12px;">${((currentPage - 1) * perPage) + i + 1}</td>
+                <td class="ps-4 text-muted" style="font-size:12px; font-variant-numeric:tabular-nums;">${((currentPage - 1) * perPage) + i + 1}</td>
                 <td><span class="kode-pill">${a.kode_aset}</span></td>
                 <td>
-                    <span style="font-weight:600;color:#1e293b;">${a.merk}</span>
-                    <span class="text-muted"> ${a.model}</span>
+                    <div class="cell-merk">${a.merk}</div>
+                    <div class="cell-model">${a.model}</div>
                 </td>
-                <td style="color:#475569;">${a.pengguna ?? '<span class="text-muted">-</span>'}</td>
-                <td style="color:#475569;">${a.lokasi ?? '<span class="text-muted">-</span>'}</td>
+                <td>${a.pengguna ?? '<span class="text-muted">—</span>'}</td>
+                <td>${a.lokasi   ?? '<span class="text-muted">—</span>'}</td>
                 <td>${kondisiBadge(a.kondisi)}</td>
                 <td class="text-center">
-                    <span style="font-size:12px;font-weight:600;color:#64748b;">${a.total_perbaikan}x</span>
+                    <span class="chip-perbaikan">
+                        <i class="bi bi-wrench" style="font-size:10px;"></i>${a.total_perbaikan}×
+                    </span>
                 </td>
-<td class="text-center pe-4">
-    <div class="d-flex align-items-center justify-content-center gap-1">
-        <a href="<?= base_url('data-aset/') ?>${a.id}" class="btn-action btn-action-view" title="Detail">
-            <i class="bi bi-eye"></i>
-        </a>
+                <td class="text-center pe-4">
+                    <div class="d-flex align-items-center justify-content-center gap-1">
+                        <a href="<?= base_url('data-aset/') ?>${a.id}" class="btn-action btn-action-view" title="Detail">
+                            <i class="bi bi-eye"></i>
+                        </a>
                         <button class="btn-action btn-action-edit" onclick="openEditModal(${a.id})" title="Edit">
                             <i class="bi bi-pencil"></i>
                         </button>
@@ -517,13 +597,7 @@
             return;
         }
 
-        const {
-            current_page,
-            total_pages,
-            has_previous,
-            has_next,
-            total
-        } = pager;
+        const { current_page, total_pages, has_previous, has_next, total } = pager;
 
         container.innerHTML = `
             <div class="d-flex justify-content-between align-items-center">
@@ -549,7 +623,7 @@
 
     function buildPageNumbers(current, total) {
         let start = Math.max(1, current - 2);
-        let end = Math.min(total, start + 4);
+        let end   = Math.min(total, start + 4);
         if (end - start < 4) start = Math.max(1, end - 4);
 
         let pages = [];
@@ -702,9 +776,7 @@
     async function deleteAsset(id, kode) {
         if (!confirm(`Hapus aset "${kode}"?\nData yang dihapus tidak dapat dikembalikan.`)) return;
 
-        const res = await apiFetch(`/api/assets/${id}`, {
-            method: 'DELETE'
-        });
+        const res = await apiFetch(`/api/assets/${id}`, { method: 'DELETE' });
         if (!res) return;
 
         if (res.ok) {

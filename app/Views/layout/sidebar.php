@@ -12,18 +12,17 @@ $current_uri = uri_string();
 
   <!-- Profile Header -->
   <div class="sb-header">
-    <div class="sb-avatar d-flex align-items-center justify-content-center"
-      style="background:rgba(255,255,255,0.15);font-size:18px;">
-      <i class="bi bi-person-fill" style="color:rgba(255,255,255,0.7)"></i>
-    </div>
-    <div class="sb-profile-info">
-      <div class="sb-role">Abhati Group</div>
-      <div class="sb-name"><?= esc(auth()->user()?->username ?? 'User') ?></div>
-    </div>
-    <button class="sb-toggle-btn" id="sb-toggle" aria-label="Toggle Sidebar" type="button">
-      <i class="bi bi-chevron-left" aria-hidden="true"></i>
-    </button>
+  <div class="sb-avatar d-flex align-items-center justify-content-center"
+       id="sb-toggle"
+       role="button"
+       aria-label="Toggle Sidebar">
+    <i class="bi bi-person-fill"></i>
   </div>
+  <div class="sb-profile-info">
+    <div class="sb-role">Abhati Group</div>
+    <div class="sb-name"><?= esc(auth()->user()?->username ?? 'User') ?></div>
+  </div>
+</div>
 
   <!-- Nav Body -->
   <div class="sb-body" id="sb-body">
@@ -36,6 +35,7 @@ $current_uri = uri_string();
         <span class="sb-nav-icon"><i class="bi bi-pc-display" aria-hidden="true"></i></span>
         <span class="sb-nav-text">Aset Laptop</span>
       </a>
+      <span class="sb-tooltip">Aset Laptop</span>
     </div>
 
     <!-- Laporan PDF -->
@@ -44,42 +44,26 @@ $current_uri = uri_string();
         <span class="sb-nav-icon"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i></span>
         <span class="sb-nav-text">Laporan PDF</span>
       </a>
+      <span class="sb-tooltip">Laporan PDF</span>
     </div>
+<!-- Bottom Nav -->
+<div class="sb-bottom-nav">
 
-    <div class="sb-divider"></div>
-
-    <!-- Logout -->
-    <div class="sb-nav-item" style="margin-top:auto;">
-      <a href="<?= base_url('logout') ?>" class="sb-nav-link" style="color:rgba(255,100,100,0.85);">
-        <span class="sb-nav-icon"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></span>
-        <span class="sb-nav-text">Logout</span>
-      </a>
-    </div>
-
+  <div class="sb-nav-item">
+    <a href="<?= base_url('it-support') ?>" class="sb-nav-link sb-nav-link--muted <?= $current_uri === 'it-support' ? 'active' : '' ?>">
+      <span class="sb-nav-icon"><i class="bi bi-question-circle" aria-hidden="true"></i></span>
+      <span class="sb-nav-text">IT Support</span>
+    </a>
+    <span class="sb-tooltip">IT Support</span>
   </div>
 
-  <!-- Footer CTA -->
-  <div class="sb-footer">
-    <!-- Expanded -->
-    <div class="sb-cta-card">
-      <div class="sb-cta-title">Inventaris</div>
-      <p class="sb-cta-desc">Kelola aset laptop kantor dengan mudah</p>
-      <button class="sb-cta-btn" type="button"
-        data-bs-toggle="modal" data-bs-target="#modalTambah"
-        id="sb-add-task-btn">
-        <i class="bi bi-plus-circle-fill" aria-hidden="true"></i>
-        Tambah Aset
-      </button>
-    </div>
-    <!-- Collapsed mini -->
-    <div class="sb-cta-card sb-cta-mini" style="display:none;">
-      <button class="sb-cta-btn-mini" type="button"
-        data-bs-toggle="modal" data-bs-target="#modalTambah"
-        aria-label="Tambah Aset"
-        id="sb-add-task-btn-mini">
-        <i class="bi bi-plus" aria-hidden="true"></i>
-      </button>
-    </div>
+  <div class="sb-nav-item">
+    <a href="<?= base_url('logout') ?>" class="sb-nav-link sb-nav-link--danger">
+      <span class="sb-nav-icon"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></span>
+      <span class="sb-nav-text">Logout</span>
+    </a>
+    <span class="sb-tooltip sb-tooltip--danger">Logout</span>
   </div>
 
+</div>
 </aside>

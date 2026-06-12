@@ -13,7 +13,8 @@
     $routes->get('/', 'AssetController::index');
     $routes->get('data-aset', 'AssetController::index'); // 
     $routes->get('data-aset/report', 'AssetController::report'); //
-    $routes->get('data-aset/(:num)', 'AssetController::show/$1'); // 
+    $routes->get('data-aset/(:num)', 'AssetController::show/$1'); //
+    $routes->get('it-support', 'SupportController::index');
 
     // ============================================================
     // API ROUTES — dilindungi global session filter
