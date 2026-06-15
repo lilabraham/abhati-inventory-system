@@ -6,29 +6,29 @@
        DESIGN TOKENS
     ════════════════════════════════════════════════════ */
     :root {
-        --clr-bg:        #f0f2f5;
-        --clr-surface:   #ffffff;
-        --clr-border:    #eaecf0;
-        --clr-sep:       #f2f4f7;
+        --clr-bg: #f0f2f5;
+        --clr-surface: #ffffff;
+        --clr-border: #eaecf0;
+        --clr-sep: #f2f4f7;
 
-        --clr-txt-900:   #0d1117;
-        --clr-txt-600:   #4b5563;
-        --clr-txt-400:   #9ca3af;
+        --clr-txt-900: #0d1117;
+        --clr-txt-600: #4b5563;
+        --clr-txt-400: #9ca3af;
 
-        --clr-blue:      #3b82f6;
-        --clr-green:     #22c55e;
-        --clr-red:       #ef4444;
-        --clr-amber:     #f59e0b;
+        --clr-blue: #3b82f6;
+        --clr-green: #22c55e;
+        --clr-red: #ef4444;
+        --clr-amber: #f59e0b;
 
-        --radius-card:   18px;
-        --radius-btn:    9px;
-        --shadow-card:   0 0 0 1px rgba(0,0,0,.045),
-                         0 2px 4px  rgba(0,0,0,.04),
-                         0 10px 28px rgba(0,0,0,.07);
-        --shadow-hover:  0 0 0 1px rgba(0,0,0,.05),
-                         0 4px 8px  rgba(0,0,0,.06),
-                         0 16px 36px rgba(0,0,0,.1);
-        --transition:    all .18s cubic-bezier(.4,0,.2,1);
+        --radius-card: 18px;
+        --radius-btn: 9px;
+        --shadow-card: 0 0 0 1px rgba(0, 0, 0, .045),
+            0 2px 4px rgba(0, 0, 0, .04),
+            0 10px 28px rgba(0, 0, 0, .07);
+        --shadow-hover: 0 0 0 1px rgba(0, 0, 0, .05),
+            0 4px 8px rgba(0, 0, 0, .06),
+            0 16px 36px rgba(0, 0, 0, .1);
+        --transition: all .18s cubic-bezier(.4, 0, .2, 1);
     }
 
     /* ════════════════════════════════════════════════════
@@ -42,6 +42,7 @@
         line-height: 1.2;
         margin: 0 0 4px;
     }
+
     .page-subtitle {
         font-size: 12.5px;
         color: var(--clr-txt-400);
@@ -66,8 +67,34 @@
         transition: var(--transition);
         white-space: nowrap;
     }
-    .btn-tambah:hover  { background: #1a2232; color: #fff; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.18); }
-    .btn-tambah:active { transform: translateY(0); box-shadow: none; }
+
+    .btn-tambah:hover {
+        background: #1a2232;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
+    }
+
+    .btn-tambah:active {
+        transform: translateY(0);
+        box-shadow: none;
+    }
+
+    /* ════════════════════════════════════════════════════
+       excel tombol
+    ════════════════════════════════════════════════════ */
+
+    .ghost-excel-btn {
+        color: #3d8b5e;
+        border-color: #3d8b5e;
+        transition: all 0.2s ease;
+    }
+
+    .ghost-excel-btn:hover {
+        background-color: #3d8b5e;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(61, 139, 94, 0.25);
+    }
 
     /* ════════════════════════════════════════════════════
        STAT CARDS
@@ -81,10 +108,12 @@
         overflow: hidden;
         position: relative;
     }
+
     .stat-card:hover {
         box-shadow: var(--shadow-hover) !important;
         transform: translateY(-2px);
     }
+
     .stat-card .card-body {
         padding: 22px 22px !important;
         display: flex;
@@ -105,7 +134,10 @@
         /* Each card overrides --ic-bg & --ic-clr */
         background: var(--ic-bg);
     }
-    .icon-circle i { color: var(--ic-clr); }
+
+    .icon-circle i {
+        color: var(--ic-clr);
+    }
 
     /* Numbers */
     .stat-value {
@@ -116,6 +148,7 @@
         color: var(--clr-txt-900);
         font-variant-numeric: tabular-nums;
     }
+
     .stat-label {
         font-size: 11.5px;
         color: var(--clr-txt-400);
@@ -143,6 +176,7 @@
         border-bottom: 1px solid var(--clr-sep);
         background: var(--clr-surface);
     }
+
     .table-card-header-title {
         display: flex;
         align-items: center;
@@ -152,6 +186,7 @@
         color: var(--clr-txt-900);
         letter-spacing: -0.15px;
     }
+
     .table-card-header-title .dot {
         width: 7px;
         height: 7px;
@@ -159,6 +194,7 @@
         background: var(--clr-blue);
         flex-shrink: 0;
     }
+
     .table-card-header small {
         font-size: 11.5px;
         color: var(--clr-txt-400);
@@ -192,8 +228,15 @@
         border-bottom: 1px solid var(--clr-sep);
         transition: background .12s;
     }
-    .asset-table tbody tr:last-child { border-bottom: none; }
-    .asset-table tbody tr:hover      { background: #fafbfc; }
+
+    .asset-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .asset-table tbody tr:hover {
+        background: #fafbfc;
+    }
+
     .asset-table tbody td {
         padding: 15px 14px;
         border: none !important;
@@ -216,8 +259,16 @@
     }
 
     /* Merk/model cell */
-    .cell-merk  { font-weight: 600; color: var(--clr-txt-900); }
-    .cell-model { font-size: 12.5px; color: var(--clr-txt-400); margin-top: 1px; }
+    .cell-merk {
+        font-weight: 600;
+        color: var(--clr-txt-900);
+    }
+
+    .cell-model {
+        font-size: 12.5px;
+        color: var(--clr-txt-400);
+        margin-top: 1px;
+    }
 
     /* Perbaikan count chip */
     .chip-perbaikan {
@@ -243,10 +294,12 @@
         font-size: 11.5px;
         font-weight: 600;
         padding: 4px 11px;
-        border-radius: 999px;      /* true pill */
+        border-radius: 999px;
+        /* true pill */
         letter-spacing: 0.02em;
         white-space: nowrap;
     }
+
     .badge-soft::before {
         content: '';
         width: 5px;
@@ -256,10 +309,26 @@
         background: currentColor;
     }
 
-    .badge-soft-success   { background: #dcfce7; color: #15803d; }
-    .badge-soft-danger    { background: #fee2e2; color: #b91c1c; }
-    .badge-soft-warning   { background: #fef3c7; color: #92400e; }  /* dark amber — WCAG AA */
-    .badge-soft-secondary { background: #f3f4f6; color: #4b5563; }
+    .badge-soft-success {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .badge-soft-danger {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .badge-soft-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    /* dark amber — WCAG AA */
+    .badge-soft-secondary {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
 
     /* ════════════════════════════════════════════════════
        GHOST ACTION BUTTONS
@@ -270,8 +339,10 @@
         padding: 0;
         border-radius: 8px;
         border: none;
-        background: transparent;        /* ghost — no bg by default */
-        color: #c4cdd6;                 /* very muted icon */
+        background: transparent;
+        /* ghost — no bg by default */
+        color: #c4cdd6;
+        /* very muted icon */
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -281,18 +352,37 @@
         transition: var(--transition);
         line-height: 1;
     }
-    .btn-action:hover { transform: translateY(-1px); }
-    .btn-action:active { transform: translateY(0); }
+
+    .btn-action:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-action:active {
+        transform: translateY(0);
+    }
 
     /* Color blooms on hover */
-    .btn-action-view:hover   { background: #eff6ff; color: #2563eb; }
-    .btn-action-edit:hover   { background: #fffbeb; color: #d97706; }
-    .btn-action-delete:hover { background: #fef2f2; color: #dc2626; }
+    .btn-action-view:hover {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    .btn-action-edit:hover {
+        background: #fffbeb;
+        color: #d97706;
+    }
+
+    .btn-action-delete:hover {
+        background: #fef2f2;
+        color: #dc2626;
+    }
 
     /* ════════════════════════════════════════════════════
        PAGINATION
     ════════════════════════════════════════════════════ */
-    #paginationContainer { border-top: 1px solid var(--clr-sep); }
+    #paginationContainer {
+        border-top: 1px solid var(--clr-sep);
+    }
 
     #paginationContainer .page-link {
         border-radius: 8px;
@@ -302,18 +392,23 @@
         padding: 5px 11px;
         transition: var(--transition);
     }
+
     #paginationContainer .page-item.active .page-link {
         background: var(--clr-txt-900);
         border-color: var(--clr-txt-900);
         color: #fff;
-        box-shadow: 0 2px 8px rgba(13,17,23,.25);
+        box-shadow: 0 2px 8px rgba(13, 17, 23, .25);
     }
+
     #paginationContainer .page-link:hover:not(.active) {
         background: var(--clr-sep);
         color: var(--clr-txt-900);
         border-color: var(--clr-border);
     }
-    #paginationContainer .pagination { gap: 3px; }
+
+    #paginationContainer .pagination {
+        gap: 3px;
+    }
 </style>
 
 <!-- ══════════════════════════════════════════════════════
@@ -324,9 +419,14 @@
         <h1 class="page-title">Aset Laptop</h1>
         <p class="page-subtitle">Manajemen inventaris laptop kantor Abhati Group</p>
     </div>
-    <button class="btn-tambah" data-bs-toggle="modal" data-bs-target="#modalTambah">
-        <i class="bi bi-plus-lg"></i> Tambah Aset
-    </button>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-success fw-semibold" style="border-radius: var(--radius-btn); font-size: 13px;" data-bs-toggle="modal" data-bs-target="#modalImport">
+            <i class="bi bi-file-earmark-excel me-1"></i> Import Excel
+        </button>
+        <button class="btn-tambah" data-bs-toggle="modal" data-bs-target="#modalTambah">
+            <i class="bi bi-plus-lg"></i> Tambah Aset
+        </button>
+    </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
@@ -474,12 +574,46 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalImport" tabindex="-1" aria-labelledby="modalImportLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
+            <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
+                <h5 class="modal-title fw-bold fs-6" id="modalImportLabel">
+                    <i class="bi bi-file-earmark-excel me-2 text-success"></i>Import Data Aset
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formImportAset" enctype="multipart/form-data">
+                <div class="modal-body px-4 py-4">
+                    <div class="alert alert-info" style="font-size: 13px; border-radius: 10px;">
+                        <strong>Panduan Import:</strong><br>
+                        1. Pastikan file berformat <strong>.xlsx</strong>.<br>
+                        2. Kolom baris pertama (Header) harus sesuai dengan format sistem.<br>
+                        3. Jangan biarkan Kode Aset kosong atau duplikat.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Pilih File Excel <span class="text-danger">*</span></label>
+                        <input type="file" name="file_excel" id="file_excel" class="form-control" accept=".xlsx" required>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #f2f4f7; padding:16px 24px;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success fw-semibold">
+                        <i class="bi bi-cloud-upload me-1"></i> Upload Data
+                    </button>
+                    <div id="importErrorContainer"></div>
+                </div>
+        </div>
+        </form>
+    </div>
+</div>
+</div>
 <!-- ══════════════════════════════════════════════════════
      TOAST
 ══════════════════════════════════════════════════════ -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
     <div id="toastNotif" class="toast align-items-center border-0" role="alert"
-         style="border-radius:12px; min-width:260px; box-shadow:0 8px 32px rgba(0,0,0,.18);">
+        style="border-radius:12px; min-width:260px; box-shadow:0 8px 32px rgba(0,0,0,.18);">
         <div class="d-flex">
             <div class="toast-body fw-semibold" id="toastMessage" style="font-size:13.5px;"></div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
@@ -492,10 +626,22 @@
 <script>
     // ─── Helpers ────────────────────────────────────────────────
     const kondisiConfig = {
-        baik: { badge: 'success', label: 'Baik' },
-        rusak: { badge: 'danger', label: 'Rusak' },
-        dalam_perbaikan: { badge: 'warning', label: 'Dalam Perbaikan' },
-        tidak_aktif: { badge: 'secondary', label: 'Tidak Aktif' },
+        baik: {
+            badge: 'success',
+            label: 'Baik'
+        },
+        rusak: {
+            badge: 'danger',
+            label: 'Rusak'
+        },
+        dalam_perbaikan: {
+            badge: 'warning',
+            label: 'Dalam Perbaikan'
+        },
+        tidak_aktif: {
+            badge: 'secondary',
+            label: 'Tidak Aktif'
+        },
     };
 
     const showToast = (message, type = 'success') => {
@@ -503,15 +649,17 @@
         const msg = document.getElementById('toastMessage');
         el.className = `toast align-items-center border-0 text-white bg-${type}`;
         msg.textContent = message;
-        new bootstrap.Toast(el, { delay: 3000 }).show();
+        new bootstrap.Toast(el, {
+            delay: 3000
+        }).show();
     };
 
     const kondisiBadge = k => {
         const map = {
-            baik:            '<span class="badge-soft badge-soft-success">Baik</span>',
-            rusak:           '<span class="badge-soft badge-soft-danger">Rusak</span>',
+            baik: '<span class="badge-soft badge-soft-success">Baik</span>',
+            rusak: '<span class="badge-soft badge-soft-danger">Rusak</span>',
             dalam_perbaikan: '<span class="badge-soft badge-soft-warning">Dalam Perbaikan</span>',
-            tidak_aktif:     '<span class="badge-soft badge-soft-secondary">Tidak Aktif</span>',
+            tidak_aktif: '<span class="badge-soft badge-soft-secondary">Tidak Aktif</span>',
         };
         return map[k] ?? `<span class="badge-soft badge-soft-secondary">${k}</span>`;
     };
@@ -597,7 +745,13 @@
             return;
         }
 
-        const { current_page, total_pages, has_previous, has_next, total } = pager;
+        const {
+            current_page,
+            total_pages,
+            has_previous,
+            has_next,
+            total
+        } = pager;
 
         container.innerHTML = `
             <div class="d-flex justify-content-between align-items-center">
@@ -623,7 +777,7 @@
 
     function buildPageNumbers(current, total) {
         let start = Math.max(1, current - 2);
-        let end   = Math.min(total, start + 4);
+        let end = Math.min(total, start + 4);
         if (end - start < 4) start = Math.max(1, end - 4);
 
         let pages = [];
@@ -776,7 +930,9 @@
     async function deleteAsset(id, kode) {
         if (!confirm(`Hapus aset "${kode}"?\nData yang dihapus tidak dapat dikembalikan.`)) return;
 
-        const res = await apiFetch(`/api/assets/${id}`, { method: 'DELETE' });
+        const res = await apiFetch(`/api/assets/${id}`, {
+            method: 'DELETE'
+        });
         if (!res) return;
 
         if (res.ok) {
@@ -790,7 +946,7 @@
 
     // ─── Load Stats ──────────────────────────────────────────────
     async function loadStats() {
-        const res = await apiFetch('/api/report/summary');
+        const res = await apiFetch('/api/reports/summary');
         if (!res) return;
 
         const json = await res.json();
@@ -805,6 +961,86 @@
         document.getElementById('statRusak').textContent = byKondisi['rusak'] ?? 0;
         document.getElementById('statPerbaikan').textContent = byKondisi['dalam_perbaikan'] ?? 0;
     }
+
+    // ─── Import Asset (Upload Excel) ──────────────────────────────
+    // Reset modal setiap kali dibuka
+    document.getElementById('modalImport').addEventListener('show.bs.modal', () => {
+        document.getElementById('importErrorContainer').innerHTML = '';
+        document.getElementById('formImportAset').reset();
+    });
+
+    document.getElementById('formImportAset').addEventListener('submit', async e => {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('file_excel');
+        const file = fileInput.files[0];
+
+        // Validasi di frontend sebelum kirim
+        if (!file) {
+            showToast('Pilih file Excel terlebih dahulu.', 'danger');
+            return;
+        }
+        if (!file.name.toLowerCase().endsWith('.xlsx')) {
+            showToast('Hanya file .xlsx yang diizinkan.', 'danger');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('Ukuran file maksimal 5MB.', 'danger');
+            return;
+        }
+
+        const btn = e.target.querySelector('[type="submit"]');
+        const originalBtnHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengunggah...';
+        document.getElementById('importErrorContainer').innerHTML = '';
+
+        try {
+            const res = await fetch('/api/assets/import', {
+                method: 'POST',
+                body: new FormData(e.target),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const json = await res.json();
+
+            if (!res.ok) {
+                // 422 validasi / 500 server error
+                throw new Error(json.message || 'Gagal mengunggah file.');
+            }
+
+            // Sukses penuh (200) — tutup modal
+            if (json.failed_count === 0) {
+                bootstrap.Modal.getInstance(document.getElementById('modalImport')).hide();
+                showToast(`Berhasil! ${json.imported_count} aset telah diimport.`, 'success');
+            } else {
+                // Partial success (207) — tampilkan error di dalam modal, jangan tutup
+                const errorItems = json.errors
+                    .map(e => `<li>Baris ${e.row}: ${e.errors.join(', ')}</li>`)
+                    .join('');
+
+                document.getElementById('importErrorContainer').innerHTML = `
+                <div class="alert alert-warning mt-2 mb-0" style="font-size:12.5px; border-radius:10px;">
+                    <strong>${json.imported_count} data berhasil diimport.</strong>
+                    ${json.failed_count} baris berikut gagal dan dilewati:
+                    <ul class="mb-0 mt-1 ps-3">${errorItems}</ul>
+                </div>`;
+
+                showToast(`${json.imported_count} berhasil, ${json.failed_count} baris gagal.`, 'warning');
+            }
+
+            loadAssets();
+            loadStats();
+
+        } catch (error) {
+            showToast(error.message, 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+        }
+    });
 
     // Init
     loadAssets();
