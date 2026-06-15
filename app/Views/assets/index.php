@@ -419,9 +419,14 @@
         <h1 class="page-title">Aset Laptop</h1>
         <p class="page-subtitle">Manajemen inventaris laptop kantor Abhati Group</p>
     </div>
-    <button class="btn-tambah" data-bs-toggle="modal" data-bs-target="#modalTambah">
-        <i class="bi bi-plus-lg"></i> Tambah Aset
-    </button>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-success fw-semibold" style="border-radius: var(--radius-btn); font-size: 13px;" data-bs-toggle="modal" data-bs-target="#modalImport">
+            <i class="bi bi-file-earmark-excel me-1"></i> Import Excel
+        </button>
+        <button class="btn-tambah" data-bs-toggle="modal" data-bs-target="#modalTambah">
+            <i class="bi bi-plus-lg"></i> Tambah Aset
+        </button>
+    </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
@@ -569,6 +574,40 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalImport" tabindex="-1" aria-labelledby="modalImportLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
+            <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
+                <h5 class="modal-title fw-bold fs-6" id="modalImportLabel">
+                    <i class="bi bi-file-earmark-excel me-2 text-success"></i>Import Data Aset
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formImportAset" enctype="multipart/form-data">
+                <div class="modal-body px-4 py-4">
+                    <div class="alert alert-info" style="font-size: 13px; border-radius: 10px;">
+                        <strong>Panduan Import:</strong><br>
+                        1. Pastikan file berformat <strong>.xlsx</strong>.<br>
+                        2. Kolom baris pertama (Header) harus sesuai dengan format sistem.<br>
+                        3. Jangan biarkan Kode Aset kosong atau duplikat.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Pilih File Excel <span class="text-danger">*</span></label>
+                        <input type="file" name="file_excel" id="file_excel" class="form-control" accept=".xlsx" required>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #f2f4f7; padding:16px 24px;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success fw-semibold">
+                        <i class="bi bi-cloud-upload me-1"></i> Upload Data
+                    </button>
+                    <div id="importErrorContainer"></div>
+                </div>
+        </div>
+        </form>
+    </div>
+</div>
+</div>
 <!-- ══════════════════════════════════════════════════════
      TOAST
 ══════════════════════════════════════════════════════ -->
@@ -907,7 +946,7 @@
 
     // ─── Load Stats ──────────────────────────────────────────────
     async function loadStats() {
-        const res = await apiFetch('/api/report/summary');
+        const res = await apiFetch('/api/reports/summary');
         if (!res) return;
 
         const json = await res.json();
@@ -922,6 +961,86 @@
         document.getElementById('statRusak').textContent = byKondisi['rusak'] ?? 0;
         document.getElementById('statPerbaikan').textContent = byKondisi['dalam_perbaikan'] ?? 0;
     }
+
+    // ─── Import Asset (Upload Excel) ──────────────────────────────
+    // Reset modal setiap kali dibuka
+    document.getElementById('modalImport').addEventListener('show.bs.modal', () => {
+        document.getElementById('importErrorContainer').innerHTML = '';
+        document.getElementById('formImportAset').reset();
+    });
+
+    document.getElementById('formImportAset').addEventListener('submit', async e => {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('file_excel');
+        const file = fileInput.files[0];
+
+        // Validasi di frontend sebelum kirim
+        if (!file) {
+            showToast('Pilih file Excel terlebih dahulu.', 'danger');
+            return;
+        }
+        if (!file.name.toLowerCase().endsWith('.xlsx')) {
+            showToast('Hanya file .xlsx yang diizinkan.', 'danger');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('Ukuran file maksimal 5MB.', 'danger');
+            return;
+        }
+
+        const btn = e.target.querySelector('[type="submit"]');
+        const originalBtnHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengunggah...';
+        document.getElementById('importErrorContainer').innerHTML = '';
+
+        try {
+            const res = await fetch('/api/assets/import', {
+                method: 'POST',
+                body: new FormData(e.target),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const json = await res.json();
+
+            if (!res.ok) {
+                // 422 validasi / 500 server error
+                throw new Error(json.message || 'Gagal mengunggah file.');
+            }
+
+            // Sukses penuh (200) — tutup modal
+            if (json.failed_count === 0) {
+                bootstrap.Modal.getInstance(document.getElementById('modalImport')).hide();
+                showToast(`Berhasil! ${json.imported_count} aset telah diimport.`, 'success');
+            } else {
+                // Partial success (207) — tampilkan error di dalam modal, jangan tutup
+                const errorItems = json.errors
+                    .map(e => `<li>Baris ${e.row}: ${e.errors.join(', ')}</li>`)
+                    .join('');
+
+                document.getElementById('importErrorContainer').innerHTML = `
+                <div class="alert alert-warning mt-2 mb-0" style="font-size:12.5px; border-radius:10px;">
+                    <strong>${json.imported_count} data berhasil diimport.</strong>
+                    ${json.failed_count} baris berikut gagal dan dilewati:
+                    <ul class="mb-0 mt-1 ps-3">${errorItems}</ul>
+                </div>`;
+
+                showToast(`${json.imported_count} berhasil, ${json.failed_count} baris gagal.`, 'warning');
+            }
+
+            loadAssets();
+            loadStats();
+
+        } catch (error) {
+            showToast(error.message, 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+        }
+    });
 
     // Init
     loadAssets();

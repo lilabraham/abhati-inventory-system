@@ -9,6 +9,8 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use App\Models\AuditLogModel;
+use App\Services\ImportService;
 use PhpOffice\PhpSpreadsheet\Style\Font;
 
 
@@ -133,6 +135,60 @@ class AssetController extends BaseController
             'message' => 'Asset berhasil dihapus.',
         ]);
     }
+
+    public function importExcel(): ResponseInterface
+    {
+        // 1. Ambil UploadedFile dari request
+        $file = $this->request->getFile('file_excel');
+
+        if (!$file || !$file->isValid()) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'status'  => 'error',
+                'message' => 'Tidak ada file yang diunggah atau file corrupt.',
+            ]);
+        }
+
+        try {
+            // 2. Panggil Service (Menggunakan helper model() standar CI4)
+            $service = new ImportService(
+                model(AssetModel::class),
+                model(AuditLogModel::class)
+            );
+
+            // 3. Lempar UploadedFile mentah langsung ke Service
+            // Service kita sudah punya fungsi validateFile() yang sangat kuat
+            $result = $service->importFromFile($file);
+            
+            // 207 Multi-Status cocok jika ada sebagian yang sukses dan sebagian gagal
+            $status = $result['failed'] === 0 ? 200 : 207;
+
+            return $this->response->setStatusCode($status)->setJSON([
+                'status'         => 'success',
+                'message'        => "{$result['imported']} data berhasil diimport.",
+                'imported_count' => $result['imported'],
+                'failed_count'   => $result['failed'],
+                'errors'         => $result['errors'],
+            ]);
+
+        } catch (\RuntimeException $e) {
+            // Menangkap error validasi dari dalam Service (Mime type, ukuran file, dll)
+            return $this->response->setStatusCode(422)->setJSON([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ]);
+        } catch (\Throwable $e) {
+            // Menangkap fatal error dan mencatatnya ke file log
+            log_message('error', '[ImportExcel] ' . $e->getMessage() . ' | ' . $e->getTraceAsString());
+            
+            return $this->response->setStatusCode(500)->setJSON([
+                'status'  => 'error',
+                // Trik Debugging: Sementara tampilkan getMessage() ke frontend agar kamu tahu errornya apa.
+                // Nanti saat rilis ke production, ganti kembali menjadi "Terjadi kesalahan server."
+                'message' => 'System Error: ' . $e->getMessage(), 
+            ]);
+        }
+    }
+
     public function exportExcel(): void
     {
         $assets = $this->db->table('laptop_assets')

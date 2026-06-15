@@ -27,6 +27,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function ($routes)
     $routes->get('assets', 'AssetController::index');
     $routes->get('assets/(:num)', 'AssetController::show/$1');
     $routes->post('assets', 'AssetController::store');
+    $routes->post('assets/import', 'AssetController::importExcel');
     $routes->put('assets/(:num)', 'AssetController::update/$1');
     $routes->delete('assets/(:num)', 'AssetController::destroy/$1');
 
@@ -44,4 +45,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function ($routes)
     $routes->post('reports/generate', 'ReportController::generate'); // Jika menggunakan submit form
     $routes->get('reports/export-excel', 'ReportController::exportExcel'); // Jika menggunakan link langsung
     // $routes->get('reports/export-pdf', 'ReportController::exportPdf');
+
+    // ── NEW: Audit Trail API ──
+    $routes->post('audit/log', 'AuditController::log');
 });
