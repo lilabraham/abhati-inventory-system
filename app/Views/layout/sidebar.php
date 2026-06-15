@@ -12,17 +12,17 @@ $current_uri = uri_string();
 
   <!-- Profile Header -->
   <div class="sb-header">
-  <div class="sb-avatar d-flex align-items-center justify-content-center"
-       id="sb-toggle"
-       role="button"
-       aria-label="Toggle Sidebar">
-    <i class="bi bi-person-fill"></i>
+    <div class="sb-avatar d-flex align-items-center justify-content-center"
+      id="sb-toggle"
+      role="button"
+      aria-label="Toggle Sidebar">
+      <i class="bi bi-person-fill"></i>
+    </div>
+    <div class="sb-profile-info">
+      <div class="sb-role">Abhati Group</div>
+      <div class="sb-name"><?= esc(auth()->user()?->username ?? 'User') ?></div>
+    </div>
   </div>
-  <div class="sb-profile-info">
-    <div class="sb-role">Abhati Group</div>
-    <div class="sb-name"><?= esc(auth()->user()?->username ?? 'User') ?></div>
-  </div>
-</div>
 
   <!-- Nav Body -->
   <div class="sb-body" id="sb-body">
@@ -38,32 +38,32 @@ $current_uri = uri_string();
       <span class="sb-tooltip">Aset Laptop</span>
     </div>
 
-    <!-- Laporan PDF -->
+    <!-- Pusat Laporan -->
     <div class="sb-nav-item">
-      <a href="<?= base_url('data-aset/report') ?>" class="sb-nav-link <?= $current_uri === 'data-aset/report' ? 'active' : '' ?>">
-        <span class="sb-nav-icon"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i></span>
-        <span class="sb-nav-text">Laporan PDF</span>
+      <a href="<?= base_url('laporan') ?>" class="sb-nav-link <?= $current_uri === 'laporan' ? 'active' : '' ?>">
+        <span class="sb-nav-icon"><i class="bi bi-folder2-open" aria-hidden="true"></i></span>
+        <span class="sb-nav-text"> Pusat Laporan</span>
       </a>
-      <span class="sb-tooltip">Laporan PDF</span>
+      <span class="sb-tooltip">Pusat Laporan</span>
     </div>
-<!-- Bottom Nav -->
-<div class="sb-bottom-nav">
+    <!-- Bottom Nav -->
+    <div class="sb-bottom-nav">
 
-  <div class="sb-nav-item">
-    <a href="<?= base_url('it-support') ?>" class="sb-nav-link sb-nav-link--muted <?= $current_uri === 'it-support' ? 'active' : '' ?>">
-      <span class="sb-nav-icon"><i class="bi bi-question-circle" aria-hidden="true"></i></span>
-      <span class="sb-nav-text">IT Support</span>
-    </a>
-    <span class="sb-tooltip">IT Support</span>
-  </div>
+      <div class="sb-nav-item">
+        <a href="<?= base_url('it-support') ?>" class="sb-nav-link sb-nav-link--muted <?= $current_uri === 'it-support' ? 'active' : '' ?>">
+          <span class="sb-nav-icon"><i class="bi bi-question-circle" aria-hidden="true"></i></span>
+          <span class="sb-nav-text">IT Support</span>
+        </a>
+        <span class="sb-tooltip">IT Support</span>
+      </div>
 
-  <div class="sb-nav-item">
-    <a href="<?= base_url('logout') ?>" class="sb-nav-link sb-nav-link--danger">
-      <span class="sb-nav-icon"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></span>
-      <span class="sb-nav-text">Logout</span>
-    </a>
-    <span class="sb-tooltip sb-tooltip--danger">Logout</span>
-  </div>
+      <div class="sb-nav-item">
+        <a href="<?= base_url('logout') ?>" class="sb-nav-link sb-nav-link--danger">
+          <span class="sb-nav-icon"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></span>
+          <span class="sb-nav-text">Logout</span>
+        </a>
+        <span class="sb-tooltip sb-tooltip--danger">Logout</span>
+      </div>
 
-</div>
+    </div>
 </aside>

@@ -1,41 +1,47 @@
-    <?php
+<?php
 
-    use CodeIgniter\Router\RouteCollection;
+use CodeIgniter\Router\RouteCollection;
 
-    /** @var RouteCollection $routes */
+/** @var RouteCollection $routes */
 
-    // Shield default auth routes (login, logout, register)
-    service('auth')->routes($routes);
+// Shield default auth routes (login, logout, register)
+service('auth')->routes($routes);
 
-    // ============================================================
-    // WEB ROUTES — dilindungi global session filter
-    // ============================================================
-    $routes->get('/', 'AssetController::index');
-    $routes->get('data-aset', 'AssetController::index'); // 
-    $routes->get('data-aset/report', 'AssetController::report'); //
-    $routes->get('data-aset/(:num)', 'AssetController::show/$1'); //
-    $routes->get('it-support', 'SupportController::index');
+// ============================================================
+// WEB ROUTES — dilindungi global session filter
+// ============================================================
+$routes->get('/', 'AssetController::index');
+$routes->get('data-aset', 'AssetController::index'); 
+$routes->get('data-aset/(:num)', 'AssetController::show/$1'); 
+$routes->get('it-support', 'SupportController::index');
 
-    // ============================================================
-    // API ROUTES — dilindungi global session filter
-    // ============================================================
-    $routes->group('api', ['namespace' => 'App\Controllers\Api'], function ($routes) {
+// ── NEW: Web UI Pusat Laporan ──
+$routes->get('laporan', 'ReportController::index'); 
 
-        // Assets
-        $routes->get('assets', 'AssetController::index');
-        $routes->get('assets/(:num)', 'AssetController::show/$1');
-        $routes->post('assets', 'AssetController::store');
-        $routes->put('assets/(:num)', 'AssetController::update/$1');
-        $routes->delete('assets/(:num)', 'AssetController::destroy/$1');
+// ============================================================
+// API ROUTES — dilindungi global session filter
+// ============================================================
+$routes->group('api', ['namespace' => 'App\Controllers\Api'], function ($routes) {
 
-        // Repairs
-        $routes->get('assets/(:num)/repairs', 'RepairController::byAsset/$1');
-        $routes->post('repairs', 'RepairController::store');
-        $routes->put('repairs/(:num)', 'RepairController::update/$1');
-        $routes->delete('repairs/(:num)', 'RepairController::destroy/$1');
+    // Assets
+    $routes->get('assets', 'AssetController::index');
+    $routes->get('assets/(:num)', 'AssetController::show/$1');
+    $routes->post('assets', 'AssetController::store');
+    $routes->put('assets/(:num)', 'AssetController::update/$1');
+    $routes->delete('assets/(:num)', 'AssetController::destroy/$1');
 
-        // Report
-        $routes->get('report/summary', 'ReportController::summary');
-        $routes->get('report/assets', 'ReportController::assets');
+    // Repairs
+    $routes->get('assets/(:num)/repairs', 'RepairController::byAsset/$1');
+    $routes->post('repairs', 'RepairController::store');
+    $routes->put('repairs/(:num)', 'RepairController::update/$1');
+    $routes->delete('repairs/(:num)', 'RepairController::destroy/$1');
 
-    });
+    // ── NEW: Centralized Report API ──
+    $routes->get('reports/summary', 'ReportController::summary');
+    $routes->get('reports/assets', 'ReportController::assets');
+    
+    // Endpoint khusus untuk export dokumen terpusat
+    $routes->post('reports/generate', 'ReportController::generate'); // Jika menggunakan submit form
+    $routes->get('reports/export-excel', 'ReportController::exportExcel'); // Jika menggunakan link langsung
+    // $routes->get('reports/export-pdf', 'ReportController::exportPdf');
+});
