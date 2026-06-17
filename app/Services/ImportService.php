@@ -39,18 +39,20 @@ class ImportService
 
     // Mapping header Excel → kolom DB (urutan wajib sesuai template)
     private const HEADER_MAP = [
-        'kode_aset'    => 'kode_aset',
-        'nama_aset'    => 'nama_aset',
-        'merk'         => 'merk',
-        'model'        => 'model',
+        'kode_aset'     => 'kode_aset',
+        'merk'          => 'merk',
+        'model'         => 'model',
         'serial_number' => 'serial_number',
-        'kondisi'      => 'kondisi',
-        'lokasi'       => 'lokasi',
-        'assigned_to'  => 'assigned_to',
-        'tanggal_beli' => 'tanggal_beli',
-        'harga_beli'   => 'harga_beli',
-        'keterangan'   => 'keterangan',
+        'pengguna'      => 'pengguna',
+        'kondisi'       => 'kondisi',
+        'lokasi'        => 'lokasi',
+        'tanggal_beli'  => 'tanggal_beli',
+        'harga_beli'    => 'harga_beli',
+        'spesifikasi'   => 'spesifikasi',
     ];
+
+    // LALU DI DALAM FUNGSI validateRow(), HAPUS VALIDASI 'nama_aset' karena di formmu tidak ada:
+    // Hapus: if (empty($row['nama_aset'])) { ... }
 
     public function __construct(
         private AssetModel   $assetModel,
@@ -66,7 +68,7 @@ class ImportService
     {
         $this->validateFile($file);
 
-        $path   = $file->getRealPath();
+        $path   = $file->getTempName();
         $reader = IOFactory::createReader('Xlsx');
         $reader->setReadDataOnly(true);
 
@@ -108,6 +110,7 @@ class ImportService
 
         // Audit log
         $this->auditModel->insertLog([
+            'user_id'     => session()->get('user_id'), // Tambahkan user yang sedang login
             'action'      => 'IMPORT',
             'module'      => 'Asset Laptop',
             'record_type' => 'assets',
@@ -235,16 +238,15 @@ class ImportService
         if (empty($row['kode_aset'])) {
             $errors[] = 'Kode aset wajib diisi.';
         }
-        if (empty($row['nama_aset'])) {
-            $errors[] = 'Nama aset wajib diisi.';
-        }
         if (!empty($row['tanggal_beli']) && !strtotime($row['tanggal_beli'])) {
             $errors[] = 'Format tanggal tidak valid (gunakan YYYY-MM-DD).';
         }
         if (!empty($row['harga_beli']) && !is_numeric($row['harga_beli'])) {
             $errors[] = 'Harga beli harus berupa angka.';
         }
-        $allowedKondisi = ['baik', 'rusak ringan', 'rusak berat'];
+        // Ubah baris ini agar sama persis dengan opsi dropdown di UI
+        $allowedKondisi = ['baik', 'rusak', 'dalam_perbaikan', 'tidak_aktif'];
+
         if (!empty($row['kondisi']) && !in_array(strtolower($row['kondisi']), $allowedKondisi, true)) {
             $errors[] = 'Kondisi harus salah satu dari: ' . implode(', ', $allowedKondisi) . '.';
         }
