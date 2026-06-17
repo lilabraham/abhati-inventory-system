@@ -156,7 +156,6 @@ class AssetController extends BaseController
             );
 
             // 3. Lempar UploadedFile mentah langsung ke Service
-            // Service kita sudah punya fungsi validateFile() yang sangat kuat
             $result = $service->importFromFile($file);
             
             // 207 Multi-Status cocok jika ada sebagian yang sukses dan sebagian gagal
