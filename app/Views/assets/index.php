@@ -1,6 +1,3 @@
-<?= $this->extend('layout/main') ?>
-<?= $this->section('content') ?>
-
 <style>
     /* ════════════════════════════════════════════════════
        DESIGN TOKENS
@@ -621,9 +618,33 @@
     </div>
 </div>
 
-<?= $this->endSection() ?>
-<?= $this->section('scripts') ?>
 <script>
+    // ─── apiFetch wrapper ────────────────────────────────────
+    async function apiFetch(url, options = {}) {
+        const defaults = {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                ...(options.body && typeof options.body === 'string' ? {
+                    'Content-Type': 'application/json'
+                } : {}),
+            },
+        };
+
+        try {
+            return await fetch(url, {
+                ...defaults,
+                ...options,
+                headers: {
+                    ...defaults.headers,
+                    ...(options.headers ?? {})
+                }
+            });
+        } catch (err) {
+            showToast('Koneksi ke server gagal.', 'danger');
+            return null;
+        }
+    }
+
     // ─── Helpers ────────────────────────────────────────────────
     const kondisiConfig = {
         baik: {
@@ -688,10 +709,24 @@
         const res = await apiFetch(`/api/assets?page=${page}&per_page=${perPage}`);
         if (!res) return;
 
-        const data = await res.json();
+        const json = await res.json();
 
-        renderTable(data.data);
-        renderPagination(data.pager);
+        if (!json.success) {
+            document.getElementById('assetTableBody').innerHTML = `
+                <tr><td colspan="8" class="text-center py-5 text-muted" style="font-size:13px;">
+                    <i class="bi bi-exclamation-circle me-2 opacity-50"></i>${json.message ?? 'Gagal memuat data.'}
+                </td></tr>`;
+            return;
+        }
+
+        renderTable(json.data.data);
+        renderPagination({
+            current_page: page,
+            total_pages: json.data.last_page,
+            total: json.data.total,
+            has_previous: page > 1,
+            has_next: page < json.data.last_page,
+        });
     }
 
     function renderTable(assets) {
@@ -718,8 +753,8 @@
                 <td>${kondisiBadge(a.kondisi)}</td>
                 <td class="text-center">
                     <span class="chip-perbaikan">
-                        <i class="bi bi-wrench" style="font-size:10px;"></i>${a.total_perbaikan}×
-                    </span>
+    <i class="bi bi-wrench" style="font-size:10px;"></i>${a.total_perbaikan ?? 0}×
+</span>
                 </td>
                 <td class="text-center pe-4">
                     <div class="d-flex align-items-center justify-content-center gap-1">
@@ -738,20 +773,18 @@
         `).join('');
     }
 
-    function renderPagination(pager) {
+    function renderPagination({
+        current_page,
+        total_pages,
+        has_previous,
+        has_next,
+        total
+    }) {
         const container = document.getElementById('paginationContainer');
-        if (!pager || pager.total_pages <= 1) {
+        if (!total_pages || total_pages <= 1) {
             container.innerHTML = '';
             return;
         }
-
-        const {
-            current_page,
-            total_pages,
-            has_previous,
-            has_next,
-            total
-        } = pager;
 
         container.innerHTML = `
             <div class="d-flex justify-content-between align-items-center">
@@ -804,19 +837,21 @@
 
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-save me-1"></i> Simpan Aset';
-
         if (!res) return;
 
         const json = await res.json();
 
-        if (res.ok) {
+        if (json.success) {
             bootstrap.Modal.getInstance(document.getElementById('modalTambah')).hide();
             e.target.reset();
             loadAssets();
             loadStats();
             showToast('Asset berhasil ditambahkan!', 'success');
         } else {
-            const errMsg = Object.values(json.errors ?? {}).join('\n');
+            // Validation errors ada di json.data (object), bukan json.errors
+            const errMsg = json.data ?
+                Object.values(json.data).join('\n') :
+                json.message;
             showToast(errMsg || 'Terjadi kesalahan.', 'danger');
         }
     });
@@ -834,7 +869,12 @@
         if (!res) return;
 
         const json = await res.json();
-        const a = json.data;
+        if (!json.success) {
+            showToast(json.message ?? 'Gagal memuat data aset.', 'danger');
+            return;
+        }
+
+        const a = json.data; // single asset langsung di json.data
 
         const kondisiOptions = ['baik', 'rusak', 'dalam_perbaikan', 'tidak_aktif']
             .map(k => `<option value="${k}" ${a.kondisi === k ? 'selected' : ''}>${kondisiConfig[k]?.label ?? k}</option>`)
@@ -910,17 +950,19 @@
 
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-save me-1"></i> Simpan Perubahan';
-
             if (!res) return;
 
-            if (res.ok) {
+            const json = await res.json();
+
+            if (json.success) {
                 bootstrap.Modal.getInstance(document.getElementById('modalEdit')).hide();
                 loadAssets();
                 loadStats();
                 showToast('Asset berhasil diperbarui!', 'success');
             } else {
-                const json = await res.json();
-                const errMsg = Object.values(json.errors ?? {}).join('\n');
+                const errMsg = json.data ?
+                    Object.values(json.data).join('\n') :
+                    json.message;
                 showToast(errMsg || 'Terjadi kesalahan.', 'danger');
             }
         });
@@ -935,12 +977,14 @@
         });
         if (!res) return;
 
-        if (res.ok) {
+        const json = await res.json();
+
+        if (json.success) {
             loadAssets();
             loadStats();
             showToast(`Asset ${kode} berhasil dihapus.`, 'success');
         } else {
-            showToast('Gagal menghapus asset.', 'danger');
+            showToast(json.message || 'Gagal menghapus asset.', 'danger');
         }
     }
 
@@ -950,10 +994,11 @@
         if (!res) return;
 
         const json = await res.json();
-        const d = json.data;
+        if (!json.success) return;
 
+        const d = json.data;
         const byKondisi = Object.fromEntries(
-            d.kondisi_stats.map(k => [k.kondisi, parseInt(k.total)])
+            (d.kondisi_stats ?? []).map(k => [k.kondisi, parseInt(k.total)])
         );
 
         document.getElementById('statTotal').textContent = d.total_aset ?? '-';
@@ -962,8 +1007,7 @@
         document.getElementById('statPerbaikan').textContent = byKondisi['dalam_perbaikan'] ?? 0;
     }
 
-    // ─── Import Asset (Upload Excel) ──────────────────────────────
-    // Reset modal setiap kali dibuka
+    // ─── Import Asset ─────────────────────────────────────────────
     document.getElementById('modalImport').addEventListener('show.bs.modal', () => {
         document.getElementById('importErrorContainer').innerHTML = '';
         document.getElementById('formImportAset').reset();
@@ -975,7 +1019,6 @@
         const fileInput = document.getElementById('file_excel');
         const file = fileInput.files[0];
 
-        // Validasi di frontend sebelum kirim
         if (!file) {
             showToast('Pilih file Excel terlebih dahulu.', 'danger');
             return;
@@ -1006,29 +1049,29 @@
 
             const json = await res.json();
 
-            if (!res.ok) {
-                // 422 validasi / 500 server error
+            if (!json.success && !res.ok) {
                 throw new Error(json.message || 'Gagal mengunggah file.');
             }
 
-            // Sukses penuh (200) — tutup modal
-            if (json.failed_count === 0) {
+            // API: json.data = { imported, failed, errors[] }
+            const result = json.data;
+
+            if (result.failed === 0) {
                 bootstrap.Modal.getInstance(document.getElementById('modalImport')).hide();
-                showToast(`Berhasil! ${json.imported_count} aset telah diimport.`, 'success');
+                showToast(`Berhasil! ${result.imported} aset telah diimport.`, 'success');
             } else {
-                // Partial success (207) — tampilkan error di dalam modal, jangan tutup
-                const errorItems = json.errors
+                const errorItems = (result.errors ?? [])
                     .map(e => `<li>Baris ${e.row}: ${e.errors.join(', ')}</li>`)
                     .join('');
 
                 document.getElementById('importErrorContainer').innerHTML = `
-                <div class="alert alert-warning mt-2 mb-0" style="font-size:12.5px; border-radius:10px;">
-                    <strong>${json.imported_count} data berhasil diimport.</strong>
-                    ${json.failed_count} baris berikut gagal dan dilewati:
-                    <ul class="mb-0 mt-1 ps-3">${errorItems}</ul>
-                </div>`;
+                    <div class="alert alert-warning mt-2 mb-0" style="font-size:12.5px; border-radius:10px;">
+                        <strong>${result.imported} data berhasil diimport.</strong>
+                        ${result.failed} baris berikut gagal dan dilewati:
+                        <ul class="mb-0 mt-1 ps-3">${errorItems}</ul>
+                    </div>`;
 
-                showToast(`${json.imported_count} berhasil, ${json.failed_count} baris gagal.`, 'warning');
+                showToast(`${result.imported} berhasil, ${result.failed} baris gagal.`, 'warning');
             }
 
             loadAssets();
@@ -1046,4 +1089,3 @@
     loadAssets();
     loadStats();
 </script>
-<?= $this->endSection() ?>

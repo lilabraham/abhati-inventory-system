@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-<?php ?>
-
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -10,6 +8,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Pastikan file CSS ini benar-benar ada di folder public/ui/css/ -->
     <link rel="stylesheet" href="<?= base_url('ui/css/sidebar.css') ?>">
 
     <style>
@@ -21,13 +20,11 @@
             margin: 0;
             min-height: 100vh;
             color: #1e293b;
-            /* Subtle noise texture agar tidak flat 100% */
             background-image:
                 radial-gradient(ellipse at 20% 0%, rgba(148,163,184,0.12) 0%, transparent 60%),
                 radial-gradient(ellipse at 80% 100%, rgba(99,102,241,0.05) 0%, transparent 60%);
         }
 
-        /* ── Main content offset mengikuti sidebar ── */
         .main-content {
             margin-left: calc(var(--sb-width-expanded) + 24px);
             transition: margin-left var(--sb-transition);
@@ -39,128 +36,45 @@
             margin-left: calc(var(--sb-width-collapsed) + 24px);
         }
 
-        /* ── Flash alerts — selaras dengan card style report ── */
-        .flash-wrapper {
-            margin-bottom: 1.25rem;
-        }
-
+        .flash-wrapper { margin-bottom: 1.25rem; }
         .flash-wrapper .alert {
             border-radius: 14px;
             font-size: 13.5px;
             font-weight: 500;
             padding: 14px 18px;
             border: none;
-            box-shadow:
-                0 2px 12px rgba(0, 0, 0, 0.06),
-                0 1px 3px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
         }
+        .flash-wrapper .alert-danger { background: #fff1f2; color: #be123c; }
+        .flash-wrapper .alert-danger .btn-close { filter: invert(20%) sepia(80%) saturate(500%) hue-rotate(320deg); }
+        .flash-wrapper .alert-success { background: #f0fdf4; color: #15803d; }
+        .flash-wrapper .alert-success .btn-close { filter: invert(30%) sepia(60%) saturate(400%) hue-rotate(100deg); }
 
-        .flash-wrapper .alert-danger {
-            background: #fff1f2;
-            color: #be123c;
-        }
-
-        .flash-wrapper .alert-danger .btn-close {
-            filter: invert(20%) sepia(80%) saturate(500%) hue-rotate(320deg);
-        }
-
-        .flash-wrapper .alert-success {
-            background: #f0fdf4;
-            color: #15803d;
-        }
-
-        .flash-wrapper .alert-success .btn-close {
-            filter: invert(30%) sepia(60%) saturate(400%) hue-rotate(100deg);
-        }
-
-        /* ── Topbar (reserved, tidak dipakai tapi tetap ada) ── */
-        .page-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-        }
-
-        .page-topbar .page-time {
-            font-size: 12px;
-            color: #9ca3af;
-        }
-
-        /* ── Global card defaults — konsisten dengan report page ── */
         .card {
             border-radius: 16px;
             border: none;
-            box-shadow:
-                0 2px 12px rgba(0, 0, 0, 0.06),
-                0 1px 3px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
-        /* ── Scrollbar global — subtle ── */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb {
             background: rgba(100, 116, 139, 0.25);
             border-radius: 99px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(100, 116, 139, 0.45);
-        }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.45); }
 
-        /* ── Bootstrap overrides — selaras tipografi ── */
-        .btn {
-            font-size: 13.5px;
-            font-weight: 600;
-            border-radius: 10px;
-        }
+        .btn { font-size: 13.5px; font-weight: 600; border-radius: 10px; }
+        .btn-sm { font-size: 12px; border-radius: 8px; }
+        .badge { font-weight: 600; letter-spacing: 0.02em; }
+        code { background: #f1f5f9; color: #3b82f6; padding: 2px 7px; border-radius: 6px; font-size: 12px; }
 
-        .btn-sm {
-            font-size: 12px;
-            border-radius: 8px;
-        }
+        .modal-content { border-radius: 18px; border: none; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15); }
+        .modal-header { border-bottom: 1px solid #f1f4f8; padding: 20px 24px 16px; }
+        .modal-footer { border-top: 1px solid #f1f4f8; padding: 16px 24px 20px; }
+        .modal-body { padding: 20px 24px; }
+        .modal-title { font-size: 15px; font-weight: 700; color: #0f172a; }
 
-        .badge {
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
-
-        code {
-            background: #f1f5f9;
-            color: #3b82f6;
-            padding: 2px 7px;
-            border-radius: 6px;
-            font-size: 12px;
-        }
-
-        /* ── Modal — selaras rounded ── */
-        .modal-content {
-            border-radius: 18px;
-            border: none;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-        }
-
-        .modal-header {
-            border-bottom: 1px solid #f1f4f8;
-            padding: 20px 24px 16px;
-        }
-
-        .modal-footer {
-            border-top: 1px solid #f1f4f8;
-            padding: 16px 24px 20px;
-        }
-
-        .modal-body {
-            padding: 20px 24px;
-        }
-
-        .modal-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        /* ── Form controls — konsisten ── */
         .form-control, .form-select {
             border-radius: 10px;
             border-color: #e2e8f0;
@@ -169,20 +83,12 @@
             color: #1e293b;
             transition: border-color 0.15s, box-shadow 0.15s;
         }
-
         .form-control:focus, .form-select:focus {
             border-color: #6366f1;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
         }
+        .form-label { font-size: 12.5px; font-weight: 600; color: #475569; margin-bottom: 6px; }
 
-        .form-label {
-            font-size: 12.5px;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 6px;
-        }
-
-        /* ── Table global fallback (jika ada tabel di halaman lain) ── */
         .table > thead > tr > th {
             font-size: 11.5px;
             font-weight: 600;
@@ -195,7 +101,8 @@
 </head>
 <body>
 
-<?= $this->include('layout/sidebar') ?>
+<!-- Pastikan file app/Views/layout/sidebar.php benar-benar ada -->
+<?= $this->include('layouts/sidebar') ?>
 
 <main class="main-content" id="main-content">
 
@@ -219,17 +126,22 @@
         </div>
     <?php endif ?>
 
-    <?= $this->renderSection('content') ?>
+    <!-- INI BAGIAN HYBRID NYA -->
+    <?php 
+        if (isset($content)) {
+            echo $content;
+        } else {
+            $this->renderSection('content'); 
+        }
+    ?>
 
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Global fetch wrapper — TIDAK DIUBAH
     window.apiFetch = async (url, options = {}) => {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
         const defaultHeaders = {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
@@ -246,11 +158,9 @@
             window.location.href = '<?= base_url('login') ?>';
             return null;
         }
-
         return res;
     };
 
-    // Sync body class dengan sidebar state (untuk margin offset)
     (function syncBodyClass() {
         const STORAGE_KEY = 'sb_collapsed';
         let saved = '0';

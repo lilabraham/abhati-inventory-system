@@ -11,41 +11,37 @@ service('auth')->routes($routes);
 // WEB ROUTES — dilindungi global session filter
 // ============================================================
 $routes->get('/', 'AssetController::index');
-$routes->get('data-aset', 'AssetController::index'); 
-$routes->get('data-aset/(:num)', 'AssetController::show/$1'); 
+$routes->get('data-aset', 'AssetController::index');
+$routes->get('data-aset/(:num)', 'AssetController::show/$1');
 $routes->get('it-support', 'SupportController::index');
 
 // ── NEW: Web UI Pusat Laporan ──
-$routes->get('laporan', 'ReportController::index'); 
+$routes->get('laporan', 'ReportController::index');
 
 // ============================================================
 // API ROUTES — dilindungi global session filter
 // ============================================================
-$routes->group('api', ['namespace' => 'App\Controllers\Api'], function ($routes) {
+$routes->group('api', ['namespace' => 'App\Controllers\API'], function ($routes) {
 
     // Assets
-    $routes->get('assets', 'AssetController::index');
-    $routes->get('assets/(:num)', 'AssetController::show/$1');
-    $routes->post('assets', 'AssetController::store');
-    $routes->post('assets/import', 'AssetController::importExcel');
-    $routes->put('assets/(:num)', 'AssetController::update/$1');
-    $routes->delete('assets/(:num)', 'AssetController::destroy/$1');
+    $routes->get('assets', 'AssetAPI::index');
+    $routes->get('assets/(:num)', 'AssetAPI::show/$1');
+    $routes->post('assets', 'AssetAPI::create');
+    $routes->post('assets/import', 'AssetAPI::importExcel');
+    $routes->put('assets/(:num)', 'AssetAPI::update/$1');
+    $routes->delete('assets/(:num)', 'AssetAPI::delete/$1');
 
     // Repairs
-    $routes->get('assets/(:num)/repairs', 'RepairController::byAsset/$1');
-    $routes->post('repairs', 'RepairController::store');
-    $routes->put('repairs/(:num)', 'RepairController::update/$1');
-    $routes->delete('repairs/(:num)', 'RepairController::destroy/$1');
+    $routes->get('assets/(:num)/repairs', 'RepairAPI::byAsset/$1');
+    $routes->post('repairs', 'RepairAPI::create');
+    $routes->put('repairs/(:num)', 'RepairAPI::update/$1');
+    $routes->delete('repairs/(:num)', 'RepairAPI::delete/$1');
 
-    // ── NEW: Centralized Report API ──
-    $routes->get('reports/summary', 'ReportController::summary');
-    $routes->get('reports/assets', 'ReportController::assets');
-    
-    // Endpoint khusus untuk export dokumen terpusat
-    $routes->post('reports/generate', 'ReportController::generate'); // Jika menggunakan submit form
-    $routes->get('reports/export-excel', 'ReportController::exportExcel'); // Jika menggunakan link langsung
-    // $routes->get('reports/export-pdf', 'ReportController::exportPdf');
+    // ── Centralized Report API ──
+    $routes->get('reports/summary', 'ReportAPI::summary');
+    $routes->get('reports/assets', 'ReportAPI::assets');
+    $routes->get('reports/export-excel', 'ReportAPI::exportExcel');
 
-    // ── NEW: Audit Trail API ──
-    $routes->post('audit/log', 'AuditController::log');
+    // ── Audit Trail API ──
+    $routes->post('audit/log', 'AuditAPI::log');
 });

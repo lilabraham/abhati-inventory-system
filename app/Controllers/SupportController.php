@@ -4,6 +4,6 @@ class SupportController extends BaseController
 {
     public function index(): string
     {
-        return view('support/index');
+        return $this->view('support/index');
     }
 }

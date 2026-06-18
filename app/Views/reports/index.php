@@ -1,5 +1,3 @@
-<?= $this->extend('layout/main') ?>
-<?= $this->section('content') ?>
 <style>
     /* ── DESIGN TOKENS ── */
     :root {
@@ -364,9 +362,6 @@
     </div>
 </div>
 
-<?= $this->endSection() ?>
-
-<?= $this->section('scripts') ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
@@ -442,12 +437,13 @@
                     totalPages = 1;
 
                 do {
-                    const res = await fetch(`<?= base_url('api/reports/assets') ?>?limit=${BATCH}&page=${page}`);
+                    const res = await fetch(`<?= base_url('api/reports/assets') ?>?size=${BATCH}&page=${page}`);
                     if (!res.ok) throw new Error('Gagal memuat data aset.');
 
                     const json = await res.json();
-                    allAssets.push(...(json.data ?? []));
-                    totalPages = json.pager?.total_pages ?? 1;
+                    const pageData = json.data?.data ?? [];
+                    allAssets.push(...pageData);
+                    totalPages = json.data?.last_page ?? 1;
 
                     if (allAssets.length >= MAX_PDF) {
                         allAssets = allAssets.slice(0, MAX_PDF);
@@ -455,7 +451,6 @@
                     }
                     page++;
                 } while (page <= totalPages);
-
                 // Jika data siap, build PDF
                 buildPDF(reportData, allAssets);
 
@@ -670,4 +665,3 @@
         });
     }());
 </script>
-<?= $this->endSection() ?>

@@ -1,8 +1,9 @@
 <?php
-// File: app/Services/ReportService.php
+
 namespace App\Services;
 
-use CodeIgniter\Database\BaseConnection;
+use App\Models\AssetModel;
+use App\Models\RepairHistoryModel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -10,29 +11,29 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class ReportService
 {
-    protected BaseConnection $db;
+    protected $assetModel;
+    protected $repairModel;
 
-    public function __construct(BaseConnection $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->assetModel  = new AssetModel();
+        $this->repairModel = new RepairHistoryModel();
     }
 
-    /**
-     * Mengambil ringkasan statistik untuk dashboard pelaporan.
-     */
-    public function getSummary(int $totalAset): array
+    public function getSummary(int $totalAset, int $companyId): array
     {
-        $kondisiStats = $this->db->table('laptop_assets')
+        $kondisiStats = $this->assetModel
             ->select('kondisi, COUNT(*) as total')
-            ->where('deleted_at IS NULL')
+            ->where('company_id', $companyId)
             ->groupBy('kondisi')
-            ->get()
-            ->getResultArray();
+            ->findAll();
 
-        $totalBiaya = $this->db->table('repair_history')
+        $totalBiaya = $this->repairModel
             ->selectSum('biaya')
-            ->get()
-            ->getRow()->biaya ?? 0;
+            ->where('company_id', $companyId)
+            ->first();
+
+        $totalBiaya = $totalBiaya['biaya'] ?? 0;
 
         return [
             'kondisi_stats'         => $kondisiStats,
@@ -42,12 +43,9 @@ class ReportService
         ];
     }
 
-    /**
-     * Mengambil seluruh data aset untuk diekspor ke Excel.
-     */
-    public function getAllAssets(): array
+    public function getAllAssets(int $companyId): array
     {
-        return $this->db->table('laptop_assets')
+        return $this->assetModel
             ->select('
                 laptop_assets.kode_aset,
                 laptop_assets.merk,
@@ -57,12 +55,13 @@ class ReportService
                 laptop_assets.lokasi,
                 laptop_assets.tanggal_beli,
                 laptop_assets.harga_beli,
-                (SELECT COUNT(*) FROM repair_history rh WHERE rh.asset_id = laptop_assets.id) AS total_perbaikan
+                COUNT(rh.id) AS total_perbaikan
             ')
-            ->where('laptop_assets.deleted_at IS NULL')
+            ->join('repair_history rh', 'rh.asset_id = laptop_assets.id AND rh.company_id = ' . (int) $companyId, 'left')
+            ->where('laptop_assets.company_id', $companyId)
+            ->groupBy('laptop_assets.id')
             ->orderBy('laptop_assets.id', 'ASC')
-            ->get()
-            ->getResultArray();
+            ->findAll();
     }
 
     /**
