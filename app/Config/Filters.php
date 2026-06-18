@@ -24,6 +24,7 @@ class Filters extends BaseConfig
         'group'         => \CodeIgniter\Shield\Filters\GroupFilter::class,
         'permission'    => \CodeIgniter\Shield\Filters\PermissionFilter::class,
         'apiAuth'       => \App\Filters\ApiAuthFilter::class,
+        'hydrateCompany' => \App\Filters\HydrateCompanySession::class,
     ];
 
     public array $globals = [
@@ -54,5 +55,6 @@ class Filters extends BaseConfig
 
     public array $filters = [
         'apiAuth' => ['before' => ['api/*']],
+            'hydrateCompany' => ['before' => ['api/*', 'data-aset*', 'laporan*', 'it-support*']],
     ];
 }
