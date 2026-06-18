@@ -119,8 +119,7 @@ _modules/*
 .phpintel
 /api/
 
-# Visual Studio Code
 .vscode/
-
 /results/
 /phpunit.xml
+bc_history.txt
