@@ -1,6 +1,3 @@
-<?= $this->extend('layout/main') ?>
-<?= $this->section('content') ?>
-
 <style>
   .support-card {
     background: #fff;
@@ -325,5 +322,3 @@
 
   </div>
 </div>
-
-<?= $this->endSection() ?>
