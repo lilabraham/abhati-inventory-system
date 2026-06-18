@@ -11,6 +11,7 @@ class RepairHistoryModel extends Model
     protected $useTimestamps  = true;
     protected $allowedFields = [
         'asset_id',
+        'company_id',
         'tanggal',
         'deskripsi',
         'teknisi',

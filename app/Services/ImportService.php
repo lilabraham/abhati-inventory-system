@@ -4,10 +4,10 @@ namespace App\Services;
 
 use App\Models\AssetModel;
 use App\Models\AuditLogModel;
-use CodeIgniter\Files\FileSizeUnit; // 👈 TAMBAHKAN BARIS INI
+use CodeIgniter\Files\FileSizeUnit;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
-use CodeIgniter\HTTP\Files\UploadedFile; // TAMBAHKAN BARIS INI
+use CodeIgniter\HTTP\Files\UploadedFile;
 
 /**
  * Baca hanya baris yang dibutuhkan — cegah OOM untuk file besar.
@@ -64,7 +64,7 @@ class ImportService
      *
      * @return array{imported: int, failed: int, errors: array}
      */
-    public function importFromFile(UploadedFile $file): array
+    public function importFromFile(UploadedFile $file, int $companyId): array
     {
         $this->validateFile($file);
 
@@ -100,7 +100,8 @@ class ImportService
                 $sheet,
                 $headers,
                 $startRow,
-                $endRow
+                $endRow,
+                $companyId  // ← tambah ini
             );
 
             $imported += $chunkImported;
@@ -162,7 +163,8 @@ class ImportService
         \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet,
         array $headers,
         int $startRow,
-        int $endRow
+        int $endRow,
+        int $companyId  // ← tambah ini
     ): array {
         $validRows = [];
         $errors    = [];
@@ -207,12 +209,17 @@ class ImportService
             }
 
             // Cek duplikat kode_aset di DB
-            if ($this->assetModel->where('kode_aset', $row['kode_aset'])->countAllResults() > 0) {
+            if (
+                $this->assetModel
+                ->where('company_id', $companyId)   // ← tambah ini
+                ->where('kode_aset', $row['kode_aset'])
+                ->countAllResults() > 0
+            ) {
                 $errors[] = ['row' => $rowIndex, 'errors' => ["Kode aset '{$row['kode_aset']}' sudah ada di database."]];
                 continue;
             }
 
-            $validRows[] = $row;
+            $validRows[] = array_merge($row, ['company_id' => $companyId]);
         }
 
         $imported = 0;
