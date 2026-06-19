@@ -20,17 +20,15 @@ class ReportService
         $this->repairModel = new RepairHistoryModel();
     }
 
-    public function getSummary(int $totalAset, int $companyId): array
+    public function getSummary(int $totalAset): array
     {
         $kondisiStats = $this->assetModel
             ->select('kondisi, COUNT(*) as total')
-            ->where('company_id', $companyId)
             ->groupBy('kondisi')
             ->findAll();
 
         $totalBiaya = $this->repairModel
             ->selectSum('biaya')
-            ->where('company_id', $companyId)
             ->first();
 
         $totalBiaya = $totalBiaya['biaya'] ?? 0;
@@ -43,7 +41,7 @@ class ReportService
         ];
     }
 
-    public function getAllAssets(int $companyId): array
+    public function getAllAssets(): array
     {
         return $this->assetModel
             ->select('
@@ -57,8 +55,7 @@ class ReportService
                 laptop_assets.harga_beli,
                 COUNT(rh.id) AS total_perbaikan
             ')
-            ->join('repair_history rh', 'rh.asset_id = laptop_assets.id AND rh.company_id = ' . (int) $companyId, 'left')
-            ->where('laptop_assets.company_id', $companyId)
+            ->join('repair_history rh', 'rh.asset_id = laptop_assets.id', 'left')
             ->groupBy('laptop_assets.id')
             ->orderBy('laptop_assets.id', 'ASC')
             ->findAll();
@@ -111,9 +108,12 @@ class ReportService
 
     /**
      * Mendorong file Excel langsung ke browser pengguna (Download).
+     * Asumsi: $spreadsheet sudah final dan valid sebelum dipanggil.
      */
     public function streamExcel(Spreadsheet $spreadsheet, string $filename): void
     {
+        ini_set('memory_limit', '256M');
+
         if (ob_get_length()) {
             ob_end_clean();
         }

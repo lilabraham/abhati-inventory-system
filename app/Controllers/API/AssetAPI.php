@@ -8,7 +8,6 @@ use App\Models\AuditLogModel;
 use App\Models\JSONResponseBuilder;
 use CodeIgniter\API\ResponseTrait;
 use App\Services\ImportService;
-use App\Services\AssetExportService;
 
 class AssetAPI extends BaseController
 {
@@ -25,26 +24,18 @@ class AssetAPI extends BaseController
     }
 
     /**
-     * Get all assets for the current company (Mendukung Tabulator / Datatables)
+     * Get all assets (Mendukung Tabulator / Datatables)
      */
     public function index()
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        // 1. KEAMANAN B2B: Cek Company ID
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found. Please login.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
         $page = (int) ($this->request->getVar('page') ?? 1);
         $size = (int) ($this->request->getVar('size') ?? $this->request->getVar('per_page') ?? 15);
         $search = $this->request->getVar('search');
 
-        // Wajib mengunci query dengan company_id
         $query = $this->assetModel
-            ->select('laptop_assets.*, (SELECT COUNT(*) FROM repair_history WHERE repair_history.asset_id = laptop_assets.id) as total_perbaikan')
-            ->where('laptop_assets.company_id', $this->userCompanyId);
+            ->select('laptop_assets.*, (SELECT COUNT(*) FROM repair_history WHERE repair_history.asset_id = laptop_assets.id) as total_perbaikan');
 
         if ($search) {
             $query->groupStart()
@@ -54,7 +45,6 @@ class AssetAPI extends BaseController
                 ->groupEnd();
         }
 
-        // Asumsi method withRepairCount() sudah kamu sesuaikan di Model
         $assets = $query->paginate($size, 'default', $page);
         $total = $this->assetModel->pager->getTotal();
 
@@ -64,7 +54,6 @@ class AssetAPI extends BaseController
             'total'     => $total
         ];
 
-        // 2. STANDAR RESPONSE ABHATI
         $responseBuilder->buildResponse(200, true, 'Assets retrieved successfully', $responseData);
         return $this->respond($responseBuilder, $responseBuilder->code);
     }
@@ -76,15 +65,7 @@ class AssetAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found. Please login.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
-        // Pastikan hanya bisa melihat aset milik perusahaannya sendiri
-        $asset = $this->assetModel
-            ->where('company_id', $this->userCompanyId)
-            ->find($id);
+        $asset = $this->assetModel->find($id);
 
         if ($asset) {
             $responseBuilder->buildResponse(200, true, 'Asset retrieved successfully', $asset);
@@ -98,14 +79,9 @@ class AssetAPI extends BaseController
     /**
      * Create new asset
      */
-    public function create() // Berubah dari store() menjadi create() menyesuaikan konvensi CI4
+    public function create()
     {
         $responseBuilder = new JSONResponseBuilder();
-
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found. Please login.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
 
         $data = $this->request->getJSON(true);
         $rules = [
@@ -119,10 +95,6 @@ class AssetAPI extends BaseController
             $responseBuilder->buildResponse(400, false, 'Validation failed', $this->validator->getErrors());
             return $this->respond($responseBuilder, $responseBuilder->code);
         }
-
-        // Sisipkan company_id dan created_by sebelum disimpan
-        $data['company_id'] = $this->userCompanyId;
-        $data['created_by'] = auth()->id();
 
         if ($this->assetModel->insert($data)) {
             $responseBuilder->buildResponse(201, true, 'Asset created successfully', ['id' => $this->assetModel->getInsertID()]);
@@ -140,20 +112,13 @@ class AssetAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
-        // Verifikasi kepemilikan data sebelum diupdate
-        $existingAsset = $this->assetModel->where('company_id', $this->userCompanyId)->find($id);
+        $existingAsset = $this->assetModel->find($id);
         if (!$existingAsset) {
             $responseBuilder->buildResponse(404, false, 'Asset not found');
             return $this->respond($responseBuilder, $responseBuilder->code);
         }
 
         $data = $this->request->getJSON(true);
-        // Validasi is_unique harus mengecualikan ID saat ini
         $rules = [
             'kode_aset' => "required|max_length[20]|is_unique[laptop_assets.kode_aset,id,{$id}]",
             'merk'      => 'required|max_length[100]',
@@ -178,17 +143,11 @@ class AssetAPI extends BaseController
     /**
      * Delete asset
      */
-    public function delete($id = null) // Berubah dari destroy menjadi delete (bawaan Restful CI4)
+    public function delete($id = null)
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
-        // Verifikasi kepemilikan
-        $existingAsset = $this->assetModel->where('company_id', $this->userCompanyId)->find($id);
+        $existingAsset = $this->assetModel->find($id);
         if (!$existingAsset) {
             $responseBuilder->buildResponse(404, false, 'Asset not found');
             return $this->respond($responseBuilder, $responseBuilder->code);
@@ -210,11 +169,6 @@ class AssetAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
         $file = $this->request->getFile('file_excel');
 
         if (!$file || !$file->isValid()) {
@@ -224,34 +178,13 @@ class AssetAPI extends BaseController
 
         try {
             $service = new ImportService($this->assetModel, $this->auditLogModel);
-
-            // lemparkan company_id ke service agar data yang diimport masuk ke perusahaan yang benar!
-            $result = $service->importFromFile($file, $this->userCompanyId);
+            $result = $service->importFromFile($file);
             $status = $result['failed'] === 0 ? 200 : 207;
 
             $responseBuilder->buildResponse($status, true, "{$result['imported']} data imported.", $result);
             return $this->respond($responseBuilder, $responseBuilder->code);
         } catch (\Exception $e) {
             $responseBuilder->buildResponse(422, false, $e->getMessage());
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-    }
-
-    /*
-     * Export Excel
-     */
-    public function exportExcel()
-    {
-        $responseBuilder = new JSONResponseBuilder();
-
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
-        try {
-        } catch (\Exception $e) {
-            $responseBuilder->buildResponse(500, false, 'Failed to export data: ' . $e->getMessage());
             return $this->respond($responseBuilder, $responseBuilder->code);
         }
     }

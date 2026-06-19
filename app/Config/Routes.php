@@ -33,6 +33,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\API'], function ($routes)
 
     // Repairs
     $routes->get('assets/(:num)/repairs', 'RepairAPI::byAsset/$1');
+    $routes->get('repairs', 'RepairAPI::index');
     $routes->post('repairs', 'RepairAPI::create');
     $routes->put('repairs/(:num)', 'RepairAPI::update/$1');
     $routes->delete('repairs/(:num)', 'RepairAPI::delete/$1');

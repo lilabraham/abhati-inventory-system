@@ -26,22 +26,15 @@ class ReportAPI extends BaseController
     }
 
     /**
-     * Summary report for current company
+     * Summary report
      */
     public function summary()
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found. Please login.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
+        $totalAset = $this->assetModel->countAllResults();
 
-        $totalAset = $this->assetModel
-            ->where('company_id', $this->userCompanyId)
-            ->countAllResults();
-
-        $data = $this->reportService->getSummary($totalAset, $this->userCompanyId);
+        $data = $this->reportService->getSummary($totalAset);
 
         $responseBuilder->buildResponse(200, true, 'Summary retrieved successfully', $data);
         return $this->respond($responseBuilder, $responseBuilder->code);
@@ -54,11 +47,6 @@ class ReportAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found. Please login.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
         $page    = max((int) ($this->request->getVar('page') ?? 1), 1);
         $size    = min((int) ($this->request->getVar('size') ?? 15), 500);
         $search  = $this->request->getVar('search');
@@ -69,7 +57,7 @@ class ReportAPI extends BaseController
         if (is_string($sorters)) $sorters = json_decode($sorters, true);
         if (is_string($filters)) $filters = json_decode($filters, true);
 
-        $query = $this->assetModel->where('company_id', $this->userCompanyId);
+        $query = $this->assetModel;
 
         if (!empty($filters) && is_array($filters)) {
             foreach ($filters as $filter) {
@@ -90,7 +78,7 @@ class ReportAPI extends BaseController
                 ->like('kode_aset', $search)
                 ->orLike('merk', $search)
                 ->orLike('model', $search)
-            ->groupEnd();
+                ->groupEnd();
         }
 
         if (!empty($sorters) && is_array($sorters)) {
@@ -121,19 +109,12 @@ class ReportAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found. Please login.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
         try {
-            $assets      = $this->reportService->getAllAssets($this->userCompanyId);
+            $assets      = $this->reportService->getAllAssets();
             $spreadsheet = $this->reportService->buildAssetSpreadsheet($assets);
             $filename    = 'Laporan_Aset_' . date('Ymd_His') . '.xlsx';
 
             $this->auditLogModel->insertLog([
-                'company_id'  => $this->userCompanyId,
-                'user_id'     => auth()->id(),
                 'action'      => 'EXPORT',
                 'module'      => 'Pusat Laporan',
                 'record_type' => 'assets',
@@ -143,11 +124,8 @@ class ReportAPI extends BaseController
 
             // Stream Excel — intentionally tidak pakai JSONResponseBuilder
             $this->reportService->streamExcel($spreadsheet, $filename);
-
         } catch (\Throwable $e) {
             $this->auditLogModel->insertLog([
-                'company_id'  => $this->userCompanyId,
-                'user_id'     => auth()->id(),
                 'action'      => 'EXPORT',
                 'module'      => 'Pusat Laporan',
                 'record_type' => 'assets',
