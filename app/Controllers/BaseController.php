@@ -18,15 +18,12 @@ abstract class BaseController extends Controller
     protected $config;
     protected $session;
     protected $response;
-    protected $userCompanyId;
 
     public function __construct()
     {
         $this->config = new App();
         $this->request = \Config\Services::request();
         $this->data['config'] = $this->config;
-
-        $this->userCompanyId = session()->get('current_company');
     }
 
     /**

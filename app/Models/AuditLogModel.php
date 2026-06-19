@@ -47,14 +47,17 @@ class AuditLogModel extends Model
     {
         $request = service('request');
 
+        $userId   = auth()->loggedIn() ? auth()->id() : null;
+        $username = auth()->loggedIn() ? (auth()->user()->username ?? 'system') : 'system';
+
         return (bool) $this->insert(array_merge([
-            'user_id'    => session()->get('user_id'),
-            'username'   => session()->get('username') ?? 'system',
+            'user_id'    => $userId,
+            'username'   => $username,
             'ip_address' => $request->getIPAddress(),
             'user_agent' => substr((string) $request->getUserAgent(), 0, 500),
             'session_id' => session_id() ?: null,
             'status'     => 'success',
             'created_at' => date('Y-m-d H:i:s'),
-        ], $data)); // $data boleh override status jadi 'failed' jika perlu
+        ], $data));
     }
 }

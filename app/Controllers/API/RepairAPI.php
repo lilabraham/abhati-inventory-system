@@ -23,16 +23,11 @@ class RepairAPI extends BaseController
     }
 
     /**
-     * Get all repair history for company (Tabulator-ready)
+     * Get all repair history (Tabulator-ready)
      */
     public function index()
     {
         $responseBuilder = new JSONResponseBuilder();
-
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found. Please login.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
 
         $page    = (int) ($this->request->getVar('page') ?? 1);
         $size    = (int) ($this->request->getVar('size') ?? 15);
@@ -46,10 +41,8 @@ class RepairAPI extends BaseController
 
         $query = $this->repairModel
             ->select('repair_history.*, laptop_assets.kode_aset, laptop_assets.merk, laptop_assets.model')
-            ->join('laptop_assets', 'laptop_assets.id = repair_history.asset_id', 'left')
-            ->where('repair_history.company_id', $this->userCompanyId);
+            ->join('laptop_assets', 'laptop_assets.id = repair_history.asset_id', 'left');
 
-        // Tabulator filters
         if (!empty($filters) && is_array($filters)) {
             foreach ($filters as $filter) {
                 $field = $filter['field'] ?? '';
@@ -64,16 +57,14 @@ class RepairAPI extends BaseController
             }
         }
 
-        // Global search
         if ($search) {
             $query->groupStart()
                 ->like('repair_history.deskripsi', $search)
                 ->orLike('laptop_assets.kode_aset', $search)
                 ->orLike('laptop_assets.merk', $search)
-            ->groupEnd();
+                ->groupEnd();
         }
 
-        // Tabulator sorters
         if (!empty($sorters) && is_array($sorters)) {
             foreach ($sorters as $sorter) {
                 $query->orderBy("repair_history.{$sorter['field']}", strtoupper($sorter['dir']));
@@ -101,15 +92,7 @@ class RepairAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found. Please login.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
-        // Ownership check — asset harus milik company ini
-        $asset = $this->assetModel
-            ->where('company_id', $this->userCompanyId)
-            ->find($assetId);
+        $asset = $this->assetModel->find($assetId);
 
         if (!$asset) {
             $responseBuilder->buildResponse(404, false, 'Asset tidak ditemukan.');
@@ -117,7 +100,6 @@ class RepairAPI extends BaseController
         }
 
         $history = $this->repairModel
-            ->where('company_id', $this->userCompanyId)
             ->where('asset_id', $assetId)
             ->orderBy('tanggal', 'DESC')
             ->findAll();
@@ -137,18 +119,14 @@ class RepairAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found. Please login.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
         $data  = $this->request->getJSON(true);
         $rules = [
-            'asset_id'     => 'required|integer',
-            'tanggal'      => 'required|valid_date',
-            'deskripsi'    => 'required',
-            'biaya'        => 'permit_empty|decimal',
-            'status_akhir' => 'permit_empty|in_list[selesai,pending,gagal]',
+            'asset_id'      => 'required|integer',
+            'tanggal'       => 'required|valid_date',
+            'deskripsi'     => 'required',
+            'biaya'         => 'permit_empty|decimal',
+            'status_akhir'  => 'permit_empty|in_list[selesai,pending,gagal]',
+            'kondisi_akhir' => 'permit_empty|in_list[baik,rusak,dalam_perbaikan,tidak_aktif]',
         ];
 
         if (!$this->validate($rules, $data)) {
@@ -156,20 +134,22 @@ class RepairAPI extends BaseController
             return $this->respond($responseBuilder, $responseBuilder->code);
         }
 
-        // Verifikasi asset milik company ini
-        $asset = $this->assetModel
-            ->where('company_id', $this->userCompanyId)
-            ->find($data['asset_id']);
-
+        $asset = $this->assetModel->find($data['asset_id']);
         if (!$asset) {
             $responseBuilder->buildResponse(404, false, 'Asset tidak ditemukan.');
             return $this->respond($responseBuilder, $responseBuilder->code);
         }
 
-        $data['company_id'] = $this->userCompanyId;
         $data['created_by'] = auth()->id();
 
         if ($this->repairModel->insert($data)) {
+            // Auto-sync kondisi aset
+            if (!empty($data['kondisi_akhir'])) {
+                $this->assetModel->update($data['asset_id'], [
+                    'kondisi' => $data['kondisi_akhir'],
+                ]);
+            }
+
             $responseBuilder->buildResponse(201, true, 'Riwayat perbaikan berhasil ditambahkan.', [
                 'id' => $this->repairModel->getInsertID(),
             ]);
@@ -187,16 +167,7 @@ class RepairAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found. Please login.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
-        // Ownership check via company_id
-        $existing = $this->repairModel
-            ->where('company_id', $this->userCompanyId)
-            ->find($id);
-
+        $existing = $this->repairModel->find($id);
         if (!$existing) {
             $responseBuilder->buildResponse(404, false, 'Riwayat tidak ditemukan.');
             return $this->respond($responseBuilder, $responseBuilder->code);
@@ -204,7 +175,30 @@ class RepairAPI extends BaseController
 
         $data = $this->request->getJSON(true);
 
+        // asset_id tidak boleh diubah lewat update — cegah riwayat "pindah" aset
+        unset($data['asset_id']);
+
+        $rules = [
+            'tanggal'       => 'permit_empty|valid_date',
+            'deskripsi'     => 'permit_empty',
+            'biaya'         => 'permit_empty|decimal',
+            'status_akhir'  => 'permit_empty|in_list[selesai,pending,gagal]',
+            'kondisi_akhir' => 'permit_empty|in_list[baik,rusak,dalam_perbaikan,tidak_aktif]',
+        ];
+
+        if (!$this->validate($rules, $data)) {
+            $responseBuilder->buildResponse(422, false, 'Validation failed', $this->validator->getErrors());
+            return $this->respond($responseBuilder, $responseBuilder->code);
+        }
+
         if ($this->repairModel->update($id, $data)) {
+            // Auto-sync kondisi aset jika kondisi_akhir diubah
+            if (!empty($data['kondisi_akhir'])) {
+                $this->assetModel->update($existing['asset_id'], [
+                    'kondisi' => $data['kondisi_akhir'],
+                ]);
+            }
+
             $responseBuilder->buildResponse(200, true, 'Riwayat berhasil diperbarui.');
         } else {
             $responseBuilder->buildResponse(400, false, 'Gagal memperbarui data.', $this->repairModel->errors());
@@ -220,15 +214,7 @@ class RepairAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        if (empty($this->userCompanyId)) {
-            $responseBuilder->buildResponse(401, false, 'Company ID not found. Please login.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
-        // Ownership check via company_id
-        $existing = $this->repairModel
-            ->where('company_id', $this->userCompanyId)
-            ->find($id);
+        $existing = $this->repairModel->find($id);
 
         if (!$existing) {
             $responseBuilder->buildResponse(404, false, 'Riwayat tidak ditemukan.');

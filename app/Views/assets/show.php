@@ -290,6 +290,16 @@
                                 <option value="gagal">Gagal</option>
                             </select>
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:.82rem;">Kondisi Laptop Setelah</label>
+                            <select name="kondisi_akhir" class="form-select rounded-3">
+                                <option value="">— Tidak Diubah —</option>
+                                <option value="baik">Baik</option>
+                                <option value="rusak">Rusak</option>
+                                <option value="dalam_perbaikan">Dalam Perbaikan</option>
+                                <option value="tidak_aktif">Tidak Aktif</option>
+                            </select>
+                        </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold" style="font-size:.82rem;">Biaya (Rp)</label>
                             <input type="number" name="biaya" class="form-control rounded-3" value="0" min="0">
@@ -310,6 +320,7 @@
 </div>
 
 <script>
+    const BASE_URL = '<?= base_url() ?>';
     const ASSET_ID = <?= (int) $asset_id ?>;
 
     const kondisiMap = {
@@ -354,7 +365,8 @@
     }) : '—';
 
     async function loadAsset() {
-        const res = await apiFetch(`/api/assets/${ASSET_ID}`);
+        const res = await apiFetch(`${BASE_URL}api/assets/${ASSET_ID}`);
+
         if (!res) return;
 
         const json = await res.json();
@@ -422,7 +434,7 @@
     }
 
     async function loadRepairs() {
-        const res = await apiFetch(`/api/assets/${ASSET_ID}/repairs`);
+        const res = await apiFetch(`${BASE_URL}api/assets/${ASSET_ID}/repairs`);
         if (!res) return;
 
         const json = await res.json();
@@ -451,18 +463,29 @@
                 cls: 'badge-soft-secondary',
                 label: r.status_akhir
             };
+            const k = r.kondisi_akhir ?
+                (kondisiMap[r.kondisi_akhir] ?? {
+                    cls: 'badge-soft-secondary',
+                    label: r.kondisi_akhir
+                }) :
+                null;
+
             return `
-            <tr>
-                <td class="ps-4 text-nowrap fw-semibold" style="font-size:.82rem;color:#64748b;">
-                    ${fmtDate(r.tanggal)}
-                </td>
-                <td style="max-width:220px;">
-                    <span class="text-truncate d-block" style="max-width:200px;">${r.deskripsi}</span>
-                </td>
-                <td class="text-nowrap">${r.teknisi ?? '—'}</td>
-                <td class="text-nowrap fw-semibold">${fmt(r.biaya)}</td>
-                <td><span class="badge rounded-pill fw-semibold px-3 py-1 ${s.cls}">${s.label}</span></td>
-            </tr>`;
+    <tr>
+        <td class="ps-4 text-nowrap fw-semibold" style="font-size:.82rem;color:#64748b;">
+            ${fmtDate(r.tanggal)}
+        </td>
+        <td style="max-width:220px;">
+            <span class="text-truncate d-block" style="max-width:200px;">${r.deskripsi}</span>
+        </td>
+        <td class="text-nowrap">${r.teknisi ?? '—'}</td>
+        <td class="text-nowrap fw-semibold">${fmt(r.biaya)}</td>
+        <td><span class="badge rounded-pill fw-semibold px-3 py-1 ${s.cls}">${s.label}</span></td>
+        <td>${k
+            ? `<span class="badge rounded-pill fw-semibold px-3 py-1 ${k.cls}">${k.label}</span>`
+            : '<span class="text-muted">—</span>'
+        }</td>
+    </tr>`;
         }).join('');
 
         document.getElementById('repairBody').innerHTML = `
@@ -475,6 +498,7 @@
                         <th>Teknisi</th>
                         <th>Biaya</th>
                         <th>Status</th>
+                        <th>Kondisi Akhir</th>
                     </tr>
                 </thead>
                 <tbody>${rows}</tbody>
@@ -493,7 +517,7 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
 
-        const res = await apiFetch('/api/repairs', {
+        const res = await apiFetch(`${BASE_URL}api/repairs`, {
             method: 'POST',
             body: JSON.stringify(Object.fromEntries(new FormData(e.target))),
         });
