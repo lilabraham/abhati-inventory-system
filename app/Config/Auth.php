@@ -284,7 +284,6 @@ class Auth extends ShieldAuth
      * Fields that are available to be used as credentials for login.
      */
     public array $validFields = [
-        'email',
         'username',
     ];
 
