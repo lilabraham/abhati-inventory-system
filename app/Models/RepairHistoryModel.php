@@ -11,12 +11,13 @@ class RepairHistoryModel extends Model
     protected $useTimestamps  = true;
     protected $allowedFields = [
         'asset_id',
-        'company_id',
         'tanggal',
         'deskripsi',
         'teknisi',
         'biaya',
         'status_akhir',
+        'kondisi_akhir',
+        'created_by',
     ];
 
     public function getByAsset(int $assetId): array
