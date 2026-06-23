@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use CodeIgniter\Model;
 
-class JSONResponseBuilder
+class JSONResponseBuilder implements \JsonSerializable
 {
     public $code = null;
     public $success = true;
@@ -18,5 +17,14 @@ class JSONResponseBuilder
         $this->success = $success;
         $this->message = $message;
         $this->data = $data;
+    }
+    public function jsonSerialize(): array
+    {
+        return [
+            'code'    => $this->code,
+            'success' => $this->success,
+            'message' => $this->message,
+            'data'    => $this->data,
+        ];
     }
 }

@@ -41,7 +41,6 @@ $routes->group('api', ['namespace' => 'App\Controllers\API'], function ($routes)
     // ── Centralized Report API ──
     $routes->get('reports/summary', 'ReportAPI::summary');
     $routes->get('reports/assets', 'ReportAPI::assets');
-    $routes->get('reports/export-excel', 'ReportAPI::exportExcel');
 
     // ── Audit Trail API ──
     $routes->post('audit/log', 'AuditAPI::log');

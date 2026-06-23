@@ -17,7 +17,6 @@ class RepairAPI extends BaseController
 
     public function __construct()
     {
-        parent::__construct();
         $this->repairModel = new RepairHistoryModel();
         $this->assetModel  = new AssetModel();
     }
@@ -119,6 +118,10 @@ class RepairAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
+        if (! auth()->user()->can('repairs.manage')) {
+            $responseBuilder->buildResponse(403, false, 'Akses ditolak.');
+            return $this->respond($responseBuilder, 403);
+        }
         $data  = $this->request->getJSON(true);
         $rules = [
             'asset_id'      => 'required|integer',
@@ -167,12 +170,12 @@ class RepairAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        $existing = $this->repairModel->find($id);
-        if (!$existing) {
-            $responseBuilder->buildResponse(404, false, 'Riwayat tidak ditemukan.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
+        if (! auth()->user()->can('repairs.manage')) {
+            $responseBuilder->buildResponse(403, false, 'Akses ditolak.');
+            return $this->respond($responseBuilder, 403);
         }
 
+        $existing = $this->repairModel->find($id);
         $data = $this->request->getJSON(true);
 
         // asset_id tidak boleh diubah lewat update — cegah riwayat "pindah" aset
@@ -214,6 +217,10 @@ class RepairAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
+        if (! auth()->user()->inGroup('superadmin')) {
+            $responseBuilder->buildResponse(403, false, 'Akses ditolak.');
+            return $this->respond($responseBuilder, 403);
+        }
         $existing = $this->repairModel->find($id);
 
         if (!$existing) {

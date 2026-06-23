@@ -15,7 +15,6 @@ class AuditAPI extends BaseController
 
     public function __construct()
     {
-        parent::__construct();
         $this->auditLogModel = new AuditLogModel();
     }
 
@@ -36,7 +35,7 @@ class AuditAPI extends BaseController
             'module' => 'required|max_length[100]',
         ];
 
-        if (!$this->validate($rules, [], $data)) {
+        if (!$this->validateData($data, $rules)) {
             $responseBuilder->buildResponse(422, false, 'Validation failed', $this->validator->getErrors());
             return $this->respond($responseBuilder, $responseBuilder->code);
         }
