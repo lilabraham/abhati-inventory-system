@@ -4,7 +4,6 @@ namespace App\Controllers\API;
 
 use App\Controllers\BaseController;
 use App\Models\AssetModel;
-use App\Models\AuditLogModel;
 use App\Models\JSONResponseBuilder;
 use CodeIgniter\API\ResponseTrait;
 use App\Services\ImportService;
@@ -14,13 +13,10 @@ class AssetAPI extends BaseController
     use ResponseTrait;
 
     protected $assetModel;
-    protected $auditLogModel;
 
     public function __construct()
     {
-        parent::__construct();
         $this->assetModel = new AssetModel();
-        $this->auditLogModel = new AuditLogModel();
     }
 
     /**
@@ -83,6 +79,11 @@ class AssetAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
+        if (! auth()->user()->can('assets.manage')) {
+            $responseBuilder->buildResponse(403, false, 'Akses ditolak.');
+            return $this->respond($responseBuilder, 403);
+        }
+
         $data = $this->request->getJSON(true);
         $rules = [
             'kode_aset' => 'required|is_unique[laptop_assets.kode_aset]',
@@ -111,6 +112,11 @@ class AssetAPI extends BaseController
     public function update($id = null)
     {
         $responseBuilder = new JSONResponseBuilder();
+
+        if (! auth()->user()->can('assets.manage')) {
+            $responseBuilder->buildResponse(403, false, 'Akses ditolak.');
+            return $this->respond($responseBuilder, 403);
+        }
 
         $existingAsset = $this->assetModel->find($id);
         if (!$existingAsset) {
@@ -147,6 +153,11 @@ class AssetAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
+        if (! auth()->user()->can('assets.manage')) {
+            $responseBuilder->buildResponse(403, false, 'Akses ditolak.');
+            return $this->respond($responseBuilder, 403);
+        }
+
         $existingAsset = $this->assetModel->find($id);
         if (!$existingAsset) {
             $responseBuilder->buildResponse(404, false, 'Asset not found');
@@ -169,21 +180,26 @@ class AssetAPI extends BaseController
     {
         $responseBuilder = new JSONResponseBuilder();
 
-        $file = $this->request->getFile('file_excel');
+        if (! auth()->user()->can('imports.run')) {
+            $responseBuilder->buildResponse(403, false, 'Akses ditolak.');
+            return $this->respond($responseBuilder, 403);
+        }
 
-        if (!$file || !$file->isValid()) {
-            $responseBuilder->buildResponse(400, false, 'Invalid or missing file.');
+        $rows = $this->request->getJSON(true)['rows'] ?? [];
+
+        if (empty($rows)) {
+            $responseBuilder->buildResponse(400, false, 'Data rows kosong atau tidak ditemukan.');
             return $this->respond($responseBuilder, $responseBuilder->code);
         }
 
         try {
-            $service = new ImportService($this->assetModel, $this->auditLogModel);
-            $result = $service->importFromFile($file);
-            $status = $result['failed'] === 0 ? 200 : 207;
+            $service = new ImportService($this->assetModel);
+            $result  = $service->processRows($rows);
+            $status  = $result['failed'] === 0 ? 200 : 207;
 
             $responseBuilder->buildResponse($status, true, "{$result['imported']} data imported.", $result);
             return $this->respond($responseBuilder, $responseBuilder->code);
-        } catch (\Exception $e) {
+        } catch (\RuntimeException $e) {
             $responseBuilder->buildResponse(422, false, $e->getMessage());
             return $this->respond($responseBuilder, $responseBuilder->code);
         }

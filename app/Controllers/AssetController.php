@@ -4,15 +4,14 @@ namespace App\Controllers;
 
 class AssetController extends BaseController
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     public function index(): string
     {
         return $this->view('assets/index', [
             'title' => 'Aset Laptop',
+            'can'   => [
+                'manage' => auth()->user()?->can('assets.manage') ?? false,
+                'import' => auth()->user()?->can('imports.run')   ?? false,
+            ],
         ]);
     }
 
