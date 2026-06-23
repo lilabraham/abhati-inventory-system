@@ -364,13 +364,19 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
-    (function () {
+    (function() {
         // ── 1. TOAST SYSTEM ──
         const TOAST_DURATION = 4500;
 
-        function showToast({ icon, type, title, message }) {
+        function showToast({
+            icon,
+            type,
+            title,
+            message
+        }) {
             const wrap = document.getElementById('toastWrap');
             const toast = document.createElement('div');
             toast.className = 'toast-item';
@@ -389,70 +395,77 @@
 
         // ── 2. HELPER FORMATTER ──
         const rupiah = v => v ? 'Rp\u00a0' + Number(v).toLocaleString('id-ID') : '—';
-        const tgl    = v => v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-        const kondisiLabel = k => ({ baik: 'Baik', rusak: 'Rusak', dalam_perbaikan: 'Dalam Perbaikan', tidak_aktif: 'Tidak Aktif' }[k] ?? k);
+        const tgl = v => v ? new Date(v).toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        }) : '—';
+        const kondisiLabel = k => window.KONDISI_CONFIG[k]?.label ?? k;
+
+        // ── 2b. SHARED ASSET FETCHER ──
+        async function fetchAllAssets(limit = Infinity) {
+            let allAssets = [],
+                page = 1,
+                totalPages = 1;
+            do {
+                const res = await apiFetch(`<?= base_url('api/reports/assets') ?>?size=${BATCH}&page=${page}`);
+                if (!res) throw new Error('Sesi habis, silakan login ulang.');
+                if (!res.ok) throw new Error('Gagal memuat data aset.');
+
+                const json = await res.json();
+                const items = json.data?.data ?? [];
+                allAssets.push(...items);
+                totalPages = json.data?.last_page ?? 1;
+
+                if (allAssets.length >= limit) {
+                    allAssets = allAssets.slice(0, limit);
+                    break;
+                }
+                page++;
+            } while (page <= totalPages);
+            return allAssets;
+        }
 
         // ── 3. FETCH & GENERATE PDF ──
         const MAX_PDF = 500;
-        const BATCH   = 100;
+        const BATCH = 100;
 
         async function fetchAndGeneratePDF() {
-            const btn     = document.getElementById('btnGenerate');
+            const btn = document.getElementById('btnGenerate');
             const btnText = document.getElementById('btnText');
-
             try {
-                btn.disabled     = true;
+                btn.disabled = true;
                 btnText.innerText = 'Memproses Data...';
                 showToast({
-                    icon: 'bi-hourglass-split', type: 'info',
+                    icon: 'bi-hourglass-split',
+                    type: 'info',
                     title: 'Memproses PDF',
                     message: 'Mengambil data dari server, mohon tunggu...'
                 });
 
-                // Fetch ringkasan statistik
                 const resStats = await apiFetch('<?= base_url('api/reports/summary') ?>');
+                if (!resStats) throw new Error('Sesi habis, silakan login ulang.');
                 if (!resStats.ok) throw new Error('Gagal memuat ringkasan statistik.');
                 const reportData = (await resStats.json()).data;
 
-                // Fetch data aset — FIX: pakai apiFetch agar CSRF & auth headers ikut
-                let allAssets = [];
-                let page = 1, totalPages = 1;
-
-                do {
-                    const res = await apiFetch(`<?= base_url('api/reports/assets') ?>?size=${BATCH}&page=${page}`);
-                    if (!res.ok) throw new Error('Gagal memuat data aset.');
-
-                    const json     = await res.json();
-                    const pageData = json.data?.data ?? [];
-                    allAssets.push(...pageData);
-                    totalPages = json.data?.last_page ?? 1;
-
-                    if (allAssets.length >= MAX_PDF) {
-                        allAssets = allAssets.slice(0, MAX_PDF);
-                        break;
-                    }
-                    page++;
-                } while (page <= totalPages);
-
-                // Build & save PDF — jika throw, langsung ke catch
+                const allAssets = await fetchAllAssets(MAX_PDF);
                 buildPDF(reportData, allAssets);
 
-                // FIX: Audit log SETELAH doc.save() berhasil
-                // Silent — gagal audit tidak boleh menghentikan user
                 try {
                     await apiFetch('<?= base_url('api/audit/log') ?>', {
                         method: 'POST',
                         body: JSON.stringify({
-                            action      : 'EXPORT',
-                            module      : 'Pusat Laporan',
-                            record_type : 'assets',
-                            description : 'Mengunduh data seluruh aset laptop ke dalam format PDF.',
+                            action: 'EXPORT',
+                            module: 'Pusat Laporan',
+                            record_type: 'assets',
+                            description: 'Mengunduh data seluruh aset laptop ke dalam format PDF.'
                         }),
                     });
                 } catch (_) {}
 
                 showToast({
-                    icon: 'bi-check-circle', type: 'info',
+                    icon: 'bi-check-circle',
+                    type: 'info',
                     title: 'Berhasil',
                     message: 'File PDF berhasil diunduh.'
                 });
@@ -460,12 +473,13 @@
             } catch (err) {
                 console.error(err);
                 showToast({
-                    icon: 'bi-exclamation-triangle', type: 'error',
+                    icon: 'bi-exclamation-triangle',
+                    type: 'error',
                     title: 'Error',
                     message: err.message
                 });
             } finally {
-                btn.disabled      = false;
+                btn.disabled = false;
                 btnText.innerText = 'Generate & Unduh Laporan';
             }
         }
@@ -474,8 +488,14 @@
         function buildPDF(reportData, allAssets) {
             if (!reportData || !allAssets.length) throw new Error('Data kosong.');
 
-            const { jsPDF } = window.jspdf;
-            const doc   = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            const {
+                jsPDF
+            } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
             const pageW = doc.internal.pageSize.getWidth();
             const pageH = doc.internal.pageSize.getHeight();
 
@@ -484,54 +504,106 @@
             doc.rect(0, 0, pageW, 35, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(18).setFont('helvetica', 'bold');
-            doc.text('LAPORAN INVENTARIS ASET LAPTOP', pageW / 2, 14, { align: 'center' });
+            doc.text('LAPORAN INVENTARIS ASET LAPTOP', pageW / 2, 14, {
+                align: 'center'
+            });
             doc.setFontSize(10).setFont('helvetica', 'normal');
-            doc.text('Abhati Group — Departemen IT', pageW / 2, 22, { align: 'center' });
+            doc.text('Abhati Group — Departemen IT', pageW / 2, 22, {
+                align: 'center'
+            });
             doc.setFontSize(8);
-            doc.text(`Digenerate: ${new Date().toLocaleString('id-ID')}`, pageW / 2, 29, { align: 'center' });
+            doc.text(`Digenerate: ${new Date().toLocaleString('id-ID')}`, pageW / 2, 29, {
+                align: 'center'
+            });
 
             // Kartu statistik
-            const stats    = reportData.kondisi_stats;
+            const stats = reportData.kondisi_stats ?? [];
             const getTotal = k => stats.find(s => s.kondisi === k)?.total ?? 0;
-            const boxes = [
-                { label: 'Total Aset',            value: String(reportData.total_aset),                   color: [59, 130, 246] },
-                { label: 'Kondisi Baik',           value: String(getTotal('baik')),                        color: [34, 197, 94]  },
-                { label: 'Rusak',                  value: String(getTotal('rusak')),                       color: [239, 68, 68]  },
-                { label: 'Total Biaya Perbaikan',  value: rupiah(reportData.total_biaya_perbaikan),        color: [234, 179, 8]  },
+            const boxes = [{
+                    label: 'Total Aset',
+                    value: String(reportData.total_aset),
+                    color: [59, 130, 246]
+                },
+                {
+                    label: 'Kondisi Baik',
+                    value: String(getTotal('baik')),
+                    color: [34, 197, 94]
+                },
+                {
+                    label: 'Rusak',
+                    value: String(getTotal('rusak')),
+                    color: [239, 68, 68]
+                },
+                {
+                    label: 'Total Biaya Perbaikan',
+                    value: rupiah(reportData.total_biaya_perbaikan),
+                    color: [234, 179, 8]
+                },
             ];
 
-            boxes.forEach(({ label, value, color }, i) => {
+            boxes.forEach(({
+                label,
+                value,
+                color
+            }, i) => {
                 const x = 10 + i * 69;
                 doc.setFillColor(...color);
                 doc.roundedRect(x, 38, 66, 18, 3, 3, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(7).setFont('helvetica', 'normal');
-                doc.text(label, x + 33, 44, { align: 'center' });
+                doc.text(label, x + 33, 44, {
+                    align: 'center'
+                });
                 doc.setFontSize(11).setFont('helvetica', 'bold');
-                doc.text(value, x + 33, 52, { align: 'center' });
+                doc.text(value, x + 33, 52, {
+                    align: 'center'
+                });
             });
 
             let startY = 60;
             if (reportData.total_aset > MAX_PDF) {
                 doc.setTextColor(180, 100, 0);
                 doc.setFontSize(7).setFont('helvetica', 'italic');
-                doc.text(`* PDF menampilkan ${MAX_PDF} dari ${reportData.total_aset} aset. Gunakan ekspor Excel untuk data lengkap.`, pageW / 2, 58, { align: 'center' });
+                doc.text(`* PDF menampilkan ${MAX_PDF} dari ${reportData.total_aset} aset. Gunakan ekspor Excel untuk data lengkap.`, pageW / 2, 58, {
+                    align: 'center'
+                });
                 startY = 63;
             }
 
             doc.setTextColor(0, 0, 0);
             doc.autoTable({
                 startY,
-                head: [['No', 'Kode Aset', 'Merk / Model', 'Pengguna', 'Kondisi', 'Perbaikan', 'Tgl Beli', 'Harga Beli']],
+                head: [
+                    ['No', 'Kode Aset', 'Merk / Model', 'Pengguna', 'Kondisi', 'Perbaikan', 'Tgl Beli', 'Harga Beli']
+                ],
                 body: allAssets.map((a, i) => [
                     i + 1, a.kode_aset, `${a.merk} ${a.model}`,
                     a.pengguna ?? '-', kondisiLabel(a.kondisi),
                     `${a.total_perbaikan ?? 0}x`, tgl(a.tanggal_beli), rupiah(a.harga_beli),
                 ]),
-                styles          : { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak' },
-                headStyles      : { fillColor: [26, 26, 46], textColor: 255, fontStyle: 'bold' },
-                alternateRowStyles: { fillColor: [245, 246, 250] },
-                columnStyles    : { 0: { cellWidth: 10, halign: 'center' }, 5: { cellWidth: 18, halign: 'center' } },
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 2.5,
+                    overflow: 'linebreak'
+                },
+                headStyles: {
+                    fillColor: [26, 26, 46],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 246, 250]
+                },
+                columnStyles: {
+                    0: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    },
+                    5: {
+                        cellWidth: 18,
+                        halign: 'center'
+                    }
+                },
             });
 
             // Footer pagination
@@ -539,25 +611,114 @@
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
                 doc.setFontSize(7).setTextColor(150);
-                doc.text(`Halaman ${i} dari ${pageCount}  •  Abhati Group — Sistem Inventaris Laptop`, pageW / 2, pageH - 4, { align: 'center' });
+                doc.text(`Halaman ${i} dari ${pageCount}  •  Abhati Group — Sistem Inventaris Laptop`, pageW / 2, pageH - 4, {
+                    align: 'center'
+                });
             }
 
             doc.save(`Laporan_Aset_Laptop_Abhati_${new Date().toISOString().slice(0, 10)}.pdf`);
         }
 
+
+        // ── 4b. FETCH & GENERATE EXCEL ──
+        async function fetchAndGenerateExcel() {
+            const btn = document.getElementById('btnGenerate');
+            const btnText = document.getElementById('btnText');
+            try {
+                btn.disabled = true;
+                btnText.innerText = 'Memproses Data...';
+                showToast({
+                    icon: 'bi-hourglass-split',
+                    type: 'info',
+                    title: 'Memproses Excel',
+                    message: 'Mengambil data dari server, mohon tunggu...'
+                });
+
+                const allAssets = await fetchAllAssets();
+                if (!allAssets.length) throw new Error('Data kosong.');
+
+                buildExcel(allAssets);
+
+                try {
+                    await apiFetch('<?= base_url('api/audit/log') ?>', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'EXPORT',
+                            module: 'Pusat Laporan',
+                            record_type: 'assets',
+                            description: `Mengunduh ${allAssets.length} data aset laptop ke dalam format Excel.`
+                        }),
+                    });
+                } catch (_) {}
+
+                showToast({
+                    icon: 'bi-check-circle',
+                    type: 'info',
+                    title: 'Berhasil',
+                    message: 'File Excel berhasil diunduh.'
+                });
+
+            } catch (err) {
+                console.error(err);
+                showToast({
+                    icon: 'bi-exclamation-triangle',
+                    type: 'error',
+                    title: 'Error',
+                    message: err.message
+                });
+            } finally {
+                btn.disabled = false;
+                btnText.innerText = 'Generate & Unduh Laporan';
+            }
+        }
+
+        // ── 4c. BUILD EXCEL ──
+        function buildExcel(allAssets) {
+            const rows = allAssets.map((a, i) => ({
+                'No': i + 1,
+                'Kode Aset': a.kode_aset,
+                'Merk/Model': `${a.merk} ${a.model}`,
+                'Pengguna': a.pengguna ?? '-',
+                'Kondisi': kondisiLabel(a.kondisi),
+                'Perbaikan': `${a.total_perbaikan ?? 0}x`,
+                'Tanggal Beli': tgl(a.tanggal_beli),
+                'Harga Beli': rupiah(a.harga_beli),
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(rows);
+            ws['!cols'] = [{
+                    wch: 5
+                }, {
+                    wch: 14
+                }, {
+                    wch: 28
+                }, {
+                    wch: 18
+                },
+                {
+                    wch: 16
+                }, {
+                    wch: 10
+                }, {
+                    wch: 14
+                }, {
+                    wch: 16
+                },
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Data Aset');
+            XLSX.writeFile(wb, `Laporan_Aset_Laptop_Abhati_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        }
+
         // ── 5. EVENT LISTENER ──
-        document.getElementById('btnGenerate').addEventListener('click', function () {
+        document.getElementById('btnGenerate').addEventListener('click', function() {
             const kategori = document.getElementById('selectKategori').value;
-            const format   = document.querySelector('input[name="docFormat"]:checked').value;
+            const format = document.querySelector('input[name="docFormat"]:checked').value;
 
             if (kategori === 'aset') {
                 if (format === 'excel') {
-                    window.location.href = '<?= base_url('api/reports/export-excel') ?>';
-                    showToast({
-                        icon: 'bi-check-circle', type: 'info',
-                        title: 'Mengunduh Excel...',
-                        message: 'File akan segera diunduh oleh browser.'
-                    });
+                    fetchAndGenerateExcel();
                 } else if (format === 'pdf') {
                     fetchAndGeneratePDF();
                 }

@@ -1,20 +1,20 @@
 <?php
-// File: app/Controllers/ReportController.php
+
 namespace App\Controllers;
 
 class ReportController extends BaseController
 {
     /**
-     * Web Controller ini murni HANYA untuk menampilkan UI Halaman Pusat Laporan.
-     * Semua logika data JSON dan Excel ditangani oleh App\Controllers\API\ReportAPI
+     * Web Controller — hanya render UI Pusat Laporan.
+     * Semua logika data ditangani oleh API\ReportAPI.
      */
-    public function __construct()
+    public function index(): string|\CodeIgniter\HTTP\RedirectResponse
     {
-        parent::__construct();
-    }
+        if (! (auth()->user()?->can('reports.export') ?? false)) {
+            return redirect()->to('/data-aset')
+                ->with('error', 'Anda tidak memiliki akses ke Pusat Laporan.');
+        }
 
-    public function index(): string
-    {
         return $this->view('reports/index');
     }
 }

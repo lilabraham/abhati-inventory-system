@@ -30,33 +30,30 @@ $current_uri = uri_string();
     <div class="sb-section-label">Main</div>
 
     <!-- Aset Laptop -->
+    <!-- FIX #4: str_starts_with agar nested route data-aset/1 ikut aktif -->
     <div class="sb-nav-item">
-      <a href="<?= base_url('data-aset') ?>" class="sb-nav-link <?= in_array($current_uri, ['data-aset', '']) ? 'active' : '' ?>">
+      <a href="<?= base_url('data-aset') ?>"
+        class="sb-nav-link <?= (str_starts_with($current_uri, 'data-aset') || $current_uri === '') ? 'active' : '' ?>">
         <span class="sb-nav-icon"><i class="bi bi-pc-display" aria-hidden="true"></i></span>
         <span class="sb-nav-text">Aset Laptop</span>
       </a>
       <span class="sb-tooltip">Aset Laptop</span>
     </div>
 
-    <!-- Pusat Laporan -->
-    <div class="sb-nav-item">
-      <a href="<?= base_url('laporan') ?>" class="sb-nav-link <?= $current_uri === 'laporan' ? 'active' : '' ?>">
-        <span class="sb-nav-icon"><i class="bi bi-folder2-open" aria-hidden="true"></i></span>
-        <span class="sb-nav-text"> Pusat Laporan</span>
-      </a>
-      <span class="sb-tooltip">Pusat Laporan</span>
-    </div>
+    <!-- FIX #1: Pusat Laporan hanya untuk reports.export -->
+    <?php if (auth()->user()?->can('reports.export') ?? false) : ?>
+      <div class="sb-nav-item">
+        <a href="<?= base_url('laporan') ?>"
+          class="sb-nav-link <?= $current_uri === 'laporan' ? 'active' : '' ?>">
+          <span class="sb-nav-icon"><i class="bi bi-folder2-open" aria-hidden="true"></i></span>
+          <span class="sb-nav-text">Pusat Laporan</span>
+        </a>
+        <span class="sb-tooltip">Pusat Laporan</span>
+      </div>
+    <?php endif ?>
+
     <!-- Bottom Nav -->
     <div class="sb-bottom-nav">
-
-      <div class="sb-nav-item">
-        <a href="<?= base_url('it-support') ?>" class="sb-nav-link sb-nav-link--muted <?= $current_uri === 'it-support' ? 'active' : '' ?>">
-          <span class="sb-nav-icon"><i class="bi bi-question-circle" aria-hidden="true"></i></span>
-          <span class="sb-nav-text">IT Support</span>
-        </a>
-        <span class="sb-tooltip">IT Support</span>
-      </div>
-
       <div class="sb-nav-item">
         <a href="<?= base_url('logout') ?>" class="sb-nav-link sb-nav-link--danger">
           <span class="sb-nav-icon"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></span>
@@ -64,6 +61,8 @@ $current_uri = uri_string();
         </a>
         <span class="sb-tooltip sb-tooltip--danger">Logout</span>
       </div>
-
     </div>
+
+  </div>
+
 </aside>
