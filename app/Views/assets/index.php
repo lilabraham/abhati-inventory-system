@@ -1,3 +1,8 @@
+<?php
+
+/** @var array{manage: bool, import: bool} $can */
+?>
+
 <style>
     /* ════════════════════════════════════════════════════
        DESIGN TOKENS
@@ -417,12 +422,16 @@
         <p class="page-subtitle">Manajemen inventaris laptop kantor Abhati Group</p>
     </div>
     <div class="d-flex gap-2">
-        <button class="btn btn-outline-success fw-semibold" style="border-radius: var(--radius-btn); font-size: 13px;" data-bs-toggle="modal" data-bs-target="#modalImport">
-            <i class="bi bi-file-earmark-excel me-1"></i> Import Excel
-        </button>
-        <button class="btn-tambah" data-bs-toggle="modal" data-bs-target="#modalTambah">
-            <i class="bi bi-plus-lg"></i> Tambah Aset
-        </button>
+        <?php if ($can['import']): ?>
+            <button class="btn btn-outline-success fw-semibold" style="border-radius: var(--radius-btn); font-size: 13px;" data-bs-toggle="modal" data-bs-target="#modalImport">
+                <i class="bi bi-file-earmark-excel me-1"></i> Import Excel
+            </button>
+        <?php endif; ?>
+        <?php if ($can['manage']): ?>
+            <button class="btn-tambah" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                <i class="bi bi-plus-lg"></i> Tambah Aset
+            </button>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -532,81 +541,88 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     MODAL TAMBAH
+     MODAL TAMBAH & EDIT — hanya superadmin
 ══════════════════════════════════════════════════════ -->
-<div class="modal fade" id="modalTambah" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
-            <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
-                <h5 class="modal-title fw-bold fs-6" id="modalTambahLabel">
-                    <i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Aset Laptop
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body px-4 py-4">
-                <?= view('assets/_form') ?>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════
-     MODAL EDIT
-══════════════════════════════════════════════════════ -->
-<div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
-            <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
-                <h5 class="modal-title fw-bold fs-6" id="modalEditLabel">
-                    <i class="bi bi-pencil-square me-2 text-warning"></i>Edit Aset Laptop
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body px-4 py-4" id="editFormContainer">
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status"></div>
+<?php if ($can['manage']): ?>
+    <div class="modal fade" id="modalTambah" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
+                <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
+                    <h5 class="modal-title fw-bold fs-6" id="modalTambahLabel">
+                        <i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Aset Laptop
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalImport" tabindex="-1" aria-labelledby="modalImportLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
-            <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
-                <h5 class="modal-title fw-bold fs-6" id="modalImportLabel">
-                    <i class="bi bi-file-earmark-excel me-2 text-success"></i>Import Data Aset
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="formImportAset" enctype="multipart/form-data">
                 <div class="modal-body px-4 py-4">
-                    <div class="alert alert-info" style="font-size: 13px; border-radius: 10px;">
-                        <strong>Panduan Import:</strong><br>
-                        1. Pastikan file berformat <strong>.xlsx</strong>.<br>
-                        2. Kolom baris pertama (Header) harus sesuai dengan format sistem.<br>
-                        3. Jangan biarkan Kode Aset kosong atau duplikat.
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Pilih File Excel <span class="text-danger">*</span></label>
-                        <input type="file" name="file_excel" id="file_excel" class="form-control" accept=".xlsx" required>
-                    </div>
+                    <?= view('assets/_form') ?>
                 </div>
-                <div class="modal-footer" style="border-top:1px solid #f2f4f7; padding:16px 24px;">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success fw-semibold">
-                        <i class="bi bi-cloud-upload me-1"></i> Upload Data
-                    </button>
-                    <div id="importErrorContainer"></div>
-                </div>
+            </div>
         </div>
-        </form>
     </div>
-</div>
-</div>
+
+    <div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
+                <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
+                    <h5 class="modal-title fw-bold fs-6" id="modalEditLabel">
+                        <i class="bi bi-pencil-square me-2 text-warning"></i>Edit Aset Laptop
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 py-4" id="editFormContainer">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
 <!-- ══════════════════════════════════════════════════════
-     TOAST
+     MODAL IMPORT — hanya yang punya imports.run
+══════════════════════════════════════════════════════ -->
+<?php if ($can['import']): ?>
+    <div class="modal fade" id="modalImport" tabindex="-1" aria-labelledby="modalImportLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
+                <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
+                    <h5 class="modal-title fw-bold fs-6" id="modalImportLabel">
+                        <i class="bi bi-file-earmark-excel me-2 text-success"></i>Import Data Aset
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formImportAset">
+                    <div class="modal-body px-4 py-4">
+                        <div class="alert alert-info" style="font-size: 13px; border-radius: 10px;">
+                            <strong>Panduan Import:</strong><br>
+                            1. Pastikan file berformat <strong>.xlsx</strong>.<br>
+                            2. Kolom baris pertama (Header) harus sesuai dengan format sistem.<br>
+                            3. Jangan biarkan Kode Aset kosong atau duplikat.
+                        </div>
+                        <button type="button" id="btnDownloadTemplate" class="btn btn-outline-secondary btn-sm mb-3" style="border-radius:8px; font-size:12.5px;">
+                            <i class="bi bi-download me-1"></i> Download Template Excel
+                        </button>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Pilih File Excel <span class="text-danger">*</span></label>
+                            <input type="file" name="file_excel" id="file_excel" class="form-control" accept=".xlsx" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top:1px solid #f2f4f7; padding:16px 24px;">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success fw-semibold">
+                            <i class="bi bi-cloud-upload me-1"></i> Upload Data
+                        </button>
+                    </div>
+                    <div id="importErrorContainer" class="px-4 pb-3"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<!-- ══════════════════════════════════════════════════════
+     TOAST — selalu dirender untuk semua role
 ══════════════════════════════════════════════════════ -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
     <div id="toastNotif" class="toast align-items-center border-0" role="alert"
@@ -618,52 +634,15 @@
     </div>
 </div>
 
+<?php if ($can['import']): ?>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<?php endif; ?>
 <script>
-    // ─── apiFetch wrapper ────────────────────────────────────
-    async function apiFetch(url, options = {}) {
-        const defaults = {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                ...(options.body && typeof options.body === 'string' ? {
-                    'Content-Type': 'application/json'
-                } : {}),
-            },
-        };
-
-        try {
-            return await fetch(url, {
-                ...defaults,
-                ...options,
-                headers: {
-                    ...defaults.headers,
-                    ...(options.headers ?? {})
-                }
-            });
-        } catch (err) {
-            showToast('Koneksi ke server gagal.', 'danger');
-            return null;
-        }
-    }
+    const CAN_MANAGE = <?= json_encode($can['manage']) ?>;
+    const CAN_IMPORT = <?= json_encode($can['import']) ?>;
 
     // ─── Helpers ────────────────────────────────────────────────
-    const kondisiConfig = {
-        baik: {
-            badge: 'success',
-            label: 'Baik'
-        },
-        rusak: {
-            badge: 'danger',
-            label: 'Rusak'
-        },
-        dalam_perbaikan: {
-            badge: 'warning',
-            label: 'Dalam Perbaikan'
-        },
-        tidak_aktif: {
-            badge: 'secondary',
-            label: 'Tidak Aktif'
-        },
-    };
+    const kondisiConfig = window.KONDISI_CONFIG;
 
     const showToast = (message, type = 'success') => {
         const el = document.getElementById('toastNotif');
@@ -675,14 +654,15 @@
         }).show();
     };
 
+    const escHtml = s => s == null ?
+        '' :
+        String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     const kondisiBadge = k => {
-        const map = {
-            baik: '<span class="badge-soft badge-soft-success">Baik</span>',
-            rusak: '<span class="badge-soft badge-soft-danger">Rusak</span>',
-            dalam_perbaikan: '<span class="badge-soft badge-soft-warning">Dalam Perbaikan</span>',
-            tidak_aktif: '<span class="badge-soft badge-soft-secondary">Tidak Aktif</span>',
-        };
-        return map[k] ?? `<span class="badge-soft badge-soft-secondary">${k}</span>`;
+        const c = kondisiConfig[k];
+        return c ? `<span class="badge-soft badge-soft-${c.cls}">${c.label}</span>` :
+            `<span class="badge-soft badge-soft-secondary">${escHtml(k)}</span>`;
     };
 
     // ─── State ───────────────────────────────────────────────────
@@ -699,7 +679,6 @@
                 </td>
             </tr>`;
     };
-    const hideSpinner = () => {};
 
     // ─── Load Assets ─────────────────────────────────────────────
     async function loadAssets(page = 1) {
@@ -707,15 +686,21 @@
         showSpinner();
 
         const res = await apiFetch(`/api/assets?page=${page}&per_page=${perPage}`);
-        if (!res) return;
+        if (!res) {
+            document.getElementById('assetTableBody').innerHTML = `
+        <tr><td colspan="8" class="text-center py-5 text-muted" style="font-size:13px;">
+            <i class="bi bi-wifi-off me-2 opacity-50"></i>Sesi habis. Silakan <a href="/login">login ulang</a>.
+        </td></tr>`;
+            return;
+        }
 
         const json = await res.json();
 
         if (!json.success) {
             document.getElementById('assetTableBody').innerHTML = `
-                <tr><td colspan="8" class="text-center py-5 text-muted" style="font-size:13px;">
-                    <i class="bi bi-exclamation-circle me-2 opacity-50"></i>${json.message ?? 'Gagal memuat data.'}
-                </td></tr>`;
+        <tr><td colspan="8" class="text-center py-5 text-muted" style="font-size:13px;">
+            <i class="bi bi-exclamation-circle me-2 opacity-50"></i>${json.message ?? 'Gagal memuat data.'}
+        </td></tr>`;
             return;
         }
 
@@ -743,13 +728,13 @@
         tbody.innerHTML = assets.map((a, i) => `
             <tr>
                 <td class="ps-4 text-muted" style="font-size:12px; font-variant-numeric:tabular-nums;">${((currentPage - 1) * perPage) + i + 1}</td>
-                <td><span class="kode-pill">${a.kode_aset}</span></td>
-                <td>
-                    <div class="cell-merk">${a.merk}</div>
-                    <div class="cell-model">${a.model}</div>
-                </td>
-                <td>${a.pengguna ?? '<span class="text-muted">—</span>'}</td>
-                <td>${a.lokasi   ?? '<span class="text-muted">—</span>'}</td>
+                <td><span class="kode-pill">${escHtml(a.kode_aset)}</span></td>
+<td>
+    <div class="cell-merk">${escHtml(a.merk)}</div>
+    <div class="cell-model">${escHtml(a.model)}</div>
+</td>
+<td>${a.pengguna ? escHtml(a.pengguna) : '<span class="text-muted">—</span>'}</td>
+<td>${a.lokasi   ? escHtml(a.lokasi)   : '<span class="text-muted">—</span>'}</td>
                 <td>${kondisiBadge(a.kondisi)}</td>
                 <td class="text-center">
                     <span class="chip-perbaikan">
@@ -761,12 +746,14 @@
                         <a href="<?= base_url('data-aset/') ?>${a.id}" class="btn-action btn-action-view" title="Detail">
                             <i class="bi bi-eye"></i>
                         </a>
+                        ${CAN_MANAGE ? `
                         <button class="btn-action btn-action-edit" onclick="openEditModal(${a.id})" title="Edit">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="btn-action btn-action-delete" onclick="deleteAsset(${a.id}, '${a.kode_aset}')" title="Hapus">
+                        <button class="btn-action btn-action-delete" data-id="${a.id}" data-kode="${escHtml(a.kode_aset)}" onclick="deleteAsset(this.dataset.id, this.dataset.kode)" title="Hapus">
                             <i class="bi bi-trash"></i>
                         </button>
+                        ` : ''}
                     </div>
                 </td>
             </tr>
@@ -824,37 +811,39 @@
     }
 
     // ─── Tambah Asset ────────────────────────────────────────────
-    document.getElementById('formTambahAset').addEventListener('submit', async e => {
-        e.preventDefault();
-        const btn = e.target.querySelector('[type="submit"]');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
+    const formTambahAset = document.getElementById('formTambahAset');
+    if (formTambahAset) {
+        formTambahAset.addEventListener('submit', async e => {
+            e.preventDefault();
+            const btn = e.target.querySelector('[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
 
-        const res = await apiFetch('/api/assets', {
-            method: 'POST',
-            body: JSON.stringify(Object.fromEntries(new FormData(e.target))),
+            const res = await apiFetch('/api/assets', {
+                method: 'POST',
+                body: JSON.stringify(Object.fromEntries(new FormData(e.target))),
+            });
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-save me-1"></i> Simpan Aset';
+            if (!res) return;
+
+            const json = await res.json();
+
+            if (json.success) {
+                bootstrap.Modal.getInstance(document.getElementById('modalTambah')).hide();
+                e.target.reset();
+                loadAssets();
+                loadStats();
+                showToast('Asset berhasil ditambahkan!', 'success');
+            } else {
+                const errMsg = json.data ?
+                    Object.values(json.data).join('\n') :
+                    json.message;
+                showToast(errMsg || 'Terjadi kesalahan.', 'danger');
+            }
         });
-
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-save me-1"></i> Simpan Aset';
-        if (!res) return;
-
-        const json = await res.json();
-
-        if (json.success) {
-            bootstrap.Modal.getInstance(document.getElementById('modalTambah')).hide();
-            e.target.reset();
-            loadAssets();
-            loadStats();
-            showToast('Asset berhasil ditambahkan!', 'success');
-        } else {
-            // Validation errors ada di json.data (object), bukan json.errors
-            const errMsg = json.data ?
-                Object.values(json.data).join('\n') :
-                json.message;
-            showToast(errMsg || 'Terjadi kesalahan.', 'danger');
-        }
-    });
+    }
 
     // ─── Edit Asset ──────────────────────────────────────────────
     async function openEditModal(id) {
@@ -874,10 +863,10 @@
             return;
         }
 
-        const a = json.data; // single asset langsung di json.data
+        const a = json.data;
 
-        const kondisiOptions = ['baik', 'rusak', 'dalam_perbaikan', 'tidak_aktif']
-            .map(k => `<option value="${k}" ${a.kondisi === k ? 'selected' : ''}>${kondisiConfig[k]?.label ?? k}</option>`)
+        const kondisiOptions = Object.keys(kondisiConfig)
+            .map(k => `<option value="${k}" ${a.kondisi === k ? 'selected' : ''}>${kondisiConfig[k].label}</option>`)
             .join('');
 
         document.getElementById('editFormContainer').innerHTML = `
@@ -886,23 +875,23 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Kode Aset <span class="text-danger">*</span></label>
-                        <input name="kode_aset" class="form-control" value="${a.kode_aset}" required maxlength="20">
+                        <input name="kode_aset" class="form-control" value="${escHtml(a.kode_aset)}" required maxlength="20">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Merk <span class="text-danger">*</span></label>
-                        <input name="merk" class="form-control" value="${a.merk}" required maxlength="100">
+                        <input name="merk" class="form-control" value="${escHtml(a.merk)}" required maxlength="100">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Model <span class="text-danger">*</span></label>
-                        <input name="model" class="form-control" value="${a.model}" required maxlength="100">
+                        <input name="model" class="form-control" value="${escHtml(a.model)}" required maxlength="100">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Serial Number</label>
-                        <input name="serial_number" class="form-control" value="${a.serial_number ?? ''}" maxlength="100">
+                        <input name="serial_number" class="form-control" value="${escHtml(a.serial_number ?? '')}" maxlength="100">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Pengguna</label>
-                        <input name="pengguna" class="form-control" value="${a.pengguna ?? ''}" maxlength="100">
+                        <input name="pengguna" class="form-control" value="${escHtml(a.pengguna ?? '')}" maxlength="100">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Kondisi <span class="text-danger">*</span></label>
@@ -910,19 +899,19 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Lokasi</label>
-                        <input name="lokasi" class="form-control" value="${a.lokasi ?? ''}" maxlength="150">
+                        <input name="lokasi" class="form-control" value="${escHtml(a.lokasi ?? '')}" maxlength="150">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Tanggal Beli</label>
-                        <input type="date" name="tanggal_beli" class="form-control" value="${a.tanggal_beli ?? ''}">
+                        <input type="date" name="tanggal_beli" class="form-control" value="${escHtml(a.tanggal_beli ?? '')}">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Harga Beli (Rp)</label>
-                        <input type="number" name="harga_beli" class="form-control" value="${a.harga_beli ?? ''}" min="0">
+                        <input type="number" name="harga_beli" class="form-control" value="${escHtml(a.harga_beli ?? '')}" min="0">
                     </div>
                     <div class="col-12">
                         <label class="form-label fw-semibold">Spesifikasi</label>
-                        <textarea name="spesifikasi" class="form-control" rows="3">${a.spesifikasi ?? ''}</textarea>
+                        <textarea name="spesifikasi" class="form-control" rows="3">${escHtml(a.spesifikasi ?? '')}</textarea>
                     </div>
                 </div>
                 <div class="mt-4 d-flex justify-content-end gap-2">
@@ -956,7 +945,7 @@
 
             if (json.success) {
                 bootstrap.Modal.getInstance(document.getElementById('modalEdit')).hide();
-                loadAssets();
+                loadAssets(currentPage);
                 loadStats();
                 showToast('Asset berhasil diperbarui!', 'success');
             } else {
@@ -980,7 +969,7 @@
         const json = await res.json();
 
         if (json.success) {
-            loadAssets();
+            loadAssets(currentPage);
             loadStats();
             showToast(`Asset ${kode} berhasil dihapus.`, 'success');
         } else {
@@ -1007,85 +996,151 @@
         document.getElementById('statPerbaikan').textContent = byKondisi['dalam_perbaikan'] ?? 0;
     }
 
-    // ─── Import Asset ─────────────────────────────────────────────
-    document.getElementById('modalImport').addEventListener('show.bs.modal', () => {
-        document.getElementById('importErrorContainer').innerHTML = '';
-        document.getElementById('formImportAset').reset();
-    });
+    // ─── Import Asset — SheetJS client-side ──────────────────────
+    const IMPORT_CHUNK_SIZE = 100;
 
-    document.getElementById('formImportAset').addEventListener('submit', async e => {
-        e.preventDefault();
+    const IMPORT_HEADERS = [
+        'kode_aset', 'merk', 'model', 'serial_number',
+        'pengguna', 'kondisi', 'lokasi',
+        'tanggal_beli', 'harga_beli', 'spesifikasi',
+    ];
 
-        const fileInput = document.getElementById('file_excel');
-        const file = fileInput.files[0];
+    if (CAN_IMPORT) {
+        document.getElementById('modalImport').addEventListener('show.bs.modal', () => {
+            document.getElementById('importErrorContainer').innerHTML = '';
+            document.getElementById('formImportAset').reset();
+        });
 
-        if (!file) {
-            showToast('Pilih file Excel terlebih dahulu.', 'danger');
-            return;
-        }
-        if (!file.name.toLowerCase().endsWith('.xlsx')) {
-            showToast('Hanya file .xlsx yang diizinkan.', 'danger');
-            return;
-        }
-        if (file.size > 5 * 1024 * 1024) {
-            showToast('Ukuran file maksimal 5MB.', 'danger');
-            return;
-        }
+        document.getElementById('btnDownloadTemplate').addEventListener('click', () => {
+            const ws = XLSX.utils.aoa_to_sheet([IMPORT_HEADERS]);
+            ws['!cols'] = IMPORT_HEADERS.map(() => ({
+                wch: 16
+            }));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Template Import');
+            XLSX.writeFile(wb, 'Template_Import_Aset_Abhati.xlsx');
+        });
 
-        const btn = e.target.querySelector('[type="submit"]');
-        const originalBtnHtml = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengunggah...';
-        document.getElementById('importErrorContainer').innerHTML = '';
-
-        try {
-            const res = await fetch('/api/assets/import', {
-                method: 'POST',
-                body: new FormData(e.target),
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+        function readExcelFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const wb = XLSX.read(e.target.result, {
+                            type: 'array',
+                            cellDates: false
+                        });
+                        const sheet = wb.Sheets[wb.SheetNames[0]];
+                        resolve(XLSX.utils.sheet_to_json(sheet, {
+                            defval: ''
+                        }));
+                    } catch (err) {
+                        reject(new Error('Gagal membaca file Excel. Pastikan format file valid.'));
+                    }
+                };
+                reader.onerror = () => reject(new Error('Gagal membaca file.'));
+                reader.readAsArrayBuffer(file);
             });
-
-            const json = await res.json();
-
-            if (!json.success && !res.ok) {
-                throw new Error(json.message || 'Gagal mengunggah file.');
-            }
-
-            // API: json.data = { imported, failed, errors[] }
-            const result = json.data;
-
-            if (result.failed === 0) {
-                bootstrap.Modal.getInstance(document.getElementById('modalImport')).hide();
-                showToast(`Berhasil! ${result.imported} aset telah diimport.`, 'success');
-            } else {
-                const errorItems = (result.errors ?? [])
-                    .map(e => `<li>Baris ${e.row}: ${e.errors.join(', ')}</li>`)
-                    .join('');
-
-                document.getElementById('importErrorContainer').innerHTML = `
-                    <div class="alert alert-warning mt-2 mb-0" style="font-size:12.5px; border-radius:10px;">
-                        <strong>${result.imported} data berhasil diimport.</strong>
-                        ${result.failed} baris berikut gagal dan dilewati:
-                        <ul class="mb-0 mt-1 ps-3">${errorItems}</ul>
-                    </div>`;
-
-                showToast(`${result.imported} berhasil, ${result.failed} baris gagal.`, 'warning');
-            }
-
-            loadAssets();
-            loadStats();
-
-        } catch (error) {
-            showToast(error.message, 'danger');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = originalBtnHtml;
         }
-    });
 
-    // Init
+        function chunkArray(arr, size) {
+            const chunks = [];
+            for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
+            return chunks;
+        }
+
+        document.getElementById('formImportAset').addEventListener('submit', async e => {
+            e.preventDefault();
+
+            const file = document.getElementById('file_excel').files[0];
+            if (!file) {
+                showToast('Pilih file Excel terlebih dahulu.', 'danger');
+                return;
+            }
+            if (!file.name.toLowerCase().endsWith('.xlsx')) {
+                showToast('Hanya file .xlsx yang diizinkan.', 'danger');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Ukuran file maksimal 5MB.', 'danger');
+                return;
+            }
+
+            const btn = e.target.querySelector('[type="submit"]');
+            const originalBtnHtml = btn.innerHTML;
+            btn.disabled = true;
+            document.getElementById('importErrorContainer').innerHTML = '';
+
+            try {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Membaca file...';
+                const rows = await readExcelFile(file);
+                if (!rows.length) throw new Error('File Excel kosong atau tidak ada data.');
+
+                const chunks = chunkArray(rows, IMPORT_CHUNK_SIZE);
+                const totalChunks = chunks.length;
+                let totalImported = 0,
+                    totalSkipped = 0,
+                    totalFailed = 0,
+                    allErrors = [];
+
+                for (let i = 0; i < totalChunks; i++) {
+                    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Mengupload chunk ${i + 1}/${totalChunks}...`;
+
+                    const res = await apiFetch('/api/assets/import', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            rows: chunks[i]
+                        }),
+                    });
+
+                    if (!res) throw new Error(`Koneksi gagal pada chunk ${i + 1}/${totalChunks}. Upload dihentikan, silakan unggah ulang file untuk melanjutkan sisa data.`);
+
+                    const json = await res.json();
+                    if (!res.ok && res.status !== 207) throw new Error(json.message || `Gagal pada chunk ${i + 1}/${totalChunks}. Upload dihentikan.`);
+
+                    const result = json.data;
+                    totalImported += result.imported ?? 0;
+                    totalSkipped += result.skipped ?? 0;
+                    totalFailed += result.failed ?? 0;
+                    allErrors.push(...(result.errors ?? []).map(err => ({
+                        ...err,
+                        chunk: i + 1
+                    })));
+                }
+
+                if (totalFailed === 0) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalImport')).hide();
+                    showToast(`Berhasil! ${totalImported} aset diimport, ${totalSkipped} dilewati (duplikat).`, 'success');
+                } else {
+                    const errorItems = allErrors
+                        .map(err => `<li>Chunk ${err.chunk}, Baris ${err.row}: ${err.errors.join(', ')}</li>`)
+                        .join('');
+                    document.getElementById('importErrorContainer').innerHTML = `
+                        <div class="alert alert-warning mt-2 mb-0" style="font-size:12.5px; border-radius:10px;">
+                            <strong>${totalImported} berhasil, ${totalSkipped} dilewati (duplikat).</strong>
+                            ${totalFailed} baris gagal:
+                            <ul class="mb-0 mt-1 ps-3">${errorItems}</ul>
+                        </div>`;
+                    showToast(`${totalImported} berhasil, ${totalSkipped} dilewati, ${totalFailed} gagal.`, 'warning');
+                }
+
+                loadAssets();
+                loadStats();
+
+            } catch (error) {
+                showToast(error.message, 'danger');
+                document.getElementById('importErrorContainer').innerHTML = `
+                    <div class="alert alert-danger mt-2 mb-0" style="font-size:12.5px; border-radius:10px;">
+                        ${error.message}
+                    </div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+            }
+        });
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────
     loadAssets();
     loadStats();
 </script>
