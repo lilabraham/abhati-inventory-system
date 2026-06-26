@@ -52,8 +52,20 @@ $current_uri = uri_string();
       </div>
     <?php endif ?>
 
+    <?php if (auth()->user()?->can('users.manage') ?? false) : ?>
+      <div class="sb-nav-item">
+        <a href="<?= base_url('user-management') ?>"
+          class="sb-nav-link <?= str_starts_with($current_uri, 'user-management') ? 'active' : '' ?>">
+          <span class="sb-nav-icon"><i class="bi bi-people-fill" aria-hidden="true"></i></span>
+          <span class="sb-nav-text">User Management</span>
+        </a>
+        <span class="sb-tooltip">User Management</span>
+      </div>
+    <?php endif ?>
+
     <!-- Bottom Nav -->
     <div class="sb-bottom-nav">
+
       <div class="sb-nav-item">
         <a href="<?= base_url('logout') ?>" class="sb-nav-link sb-nav-link--danger">
           <span class="sb-nav-icon"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></span>
@@ -61,6 +73,7 @@ $current_uri = uri_string();
         </a>
         <span class="sb-tooltip sb-tooltip--danger">Logout</span>
       </div>
+
     </div>
 
   </div>

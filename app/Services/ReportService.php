@@ -7,32 +7,38 @@ use App\Models\RepairHistoryModel;
 
 class ReportService
 {
-    protected $assetModel;
-    protected $repairModel;
+    public function __construct(
+        private AssetModel $assetModel,
+        private RepairHistoryModel $repairModel
+    ) {}
 
-    public function __construct()
-    {
-        $this->assetModel  = new AssetModel();
-        $this->repairModel = new RepairHistoryModel();
-    }
+    private const ALLOWED_KONDISI = ['baik', 'rusak', 'dalam_perbaikan', 'tidak_aktif'];
 
-    public function getSummary(int $totalAset): array
+    public function getSummary(): array
     {
-        $kondisiStats = $this->assetModel
+        $rawStats = $this->assetModel
             ->select('kondisi, COUNT(*) as total')
             ->groupBy('kondisi')
             ->findAll();
+
+        $countByKondisi = array_column($rawStats, 'total', 'kondisi');
+
+        $kondisiStats = array_map(
+            fn(string $kondisi) => [
+                'kondisi' => $kondisi,
+                'total'   => (int) ($countByKondisi[$kondisi] ?? 0),
+            ],
+            self::ALLOWED_KONDISI
+        );
 
         $totalBiaya = $this->repairModel
             ->selectSum('biaya')
             ->first();
 
-        $totalBiaya = $totalBiaya['biaya'] ?? 0;
-
         return [
             'kondisi_stats'         => $kondisiStats,
-            'total_biaya_perbaikan' => (float) $totalBiaya,
-            'total_aset'            => $totalAset,
+            'total_biaya_perbaikan' => (float) ($totalBiaya['biaya'] ?? 0),
+            'total_aset'            => $this->assetModel->countAllResults(),
             'generated_at'          => date('Y-m-d H:i:s'),
         ];
     }

@@ -210,99 +210,7 @@
         transform: none;
         box-shadow: none;
     }
-
-    /* ── TOAST ── */
-    .toast-wrap {
-        position: fixed;
-        bottom: 28px;
-        right: 28px;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        pointer-events: none;
-    }
-
-    .toast-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        background: #fff;
-        border: 1px solid var(--clr-border);
-        border-radius: 12px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, .12);
-        padding: 14px 16px;
-        min-width: 300px;
-        max-width: 380px;
-        pointer-events: all;
-        animation: toast-in .22s cubic-bezier(.4, 0, .2, 1);
-    }
-
-    .toast-item.toast-out {
-        animation: toast-out .2s forwards;
-    }
-
-    .toast-icon {
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 15px;
-        flex-shrink: 0;
-    }
-
-    .toast-icon.info {
-        background: #eff6ff;
-        color: #2563eb;
-    }
-
-    .toast-icon.warn {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .toast-icon.error {
-        background: #fee2e2;
-        color: #dc2626;
-    }
-
-    .toast-body strong {
-        display: block;
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--clr-txt-900);
-        margin-bottom: 2px;
-    }
-
-    .toast-body span {
-        font-size: 12.5px;
-        color: var(--clr-txt-600);
-        line-height: 1.4;
-    }
-
-    @keyframes toast-in {
-        from {
-            opacity: 0;
-            transform: translateY(12px);
-        }
-
-        to {
-            opacity: 1;
-            transform: none;
-        }
-    }
-
-    @keyframes toast-out {
-        to {
-            opacity: 0;
-            transform: translateY(8px);
-        }
-    }
 </style>
-
-<div class="toast-wrap" id="toastWrap"></div>
 
 <div class="mb-4">
     <h1 style="font-size:1.2rem;font-weight:800;color:var(--clr-txt-900);letter-spacing:-.4px;margin:0 0 4px;">Pusat Laporan</h1>
@@ -368,47 +276,26 @@
 
 <script>
     (function() {
-        // ── 1. TOAST SYSTEM ──
-        const TOAST_DURATION = 4500;
-
-        function showToast({
-            icon,
-            type,
-            title,
-            message
-        }) {
-            const wrap = document.getElementById('toastWrap');
-            const toast = document.createElement('div');
-            toast.className = 'toast-item';
-            toast.innerHTML = `
-                <div class="toast-icon ${type}"><i class="bi ${icon}"></i></div>
-                <div class="toast-body">
-                    <strong>${title}</strong>
-                    <span>${message}</span>
-                </div>`;
-            wrap.appendChild(toast);
-            setTimeout(() => {
-                toast.classList.add('toast-out');
-                toast.addEventListener('animationend', () => toast.remove());
-            }, TOAST_DURATION);
-        }
 
         // ── 2. HELPER FORMATTER ──
         const rupiah = v => v ? 'Rp\u00a0' + Number(v).toLocaleString('id-ID') : '—';
-        const tgl = v => v ? new Date(v).toLocaleDateString('id-ID', {
+        const tgl = v => v ? new Date(v + 'T00:00:00').toLocaleDateString('id-ID', {
             day: '2-digit',
             month: 'short',
             year: 'numeric'
         }) : '—';
         const kondisiLabel = k => window.KONDISI_CONFIG[k]?.label ?? k;
 
-        // ── 2b. SHARED ASSET FETCHER ──
+        // ── 2b. CONSTANTS & SHARED ASSET FETCHER ──
+        const MAX_PDF = 500;
+        const BATCH = 100;
+
         async function fetchAllAssets(limit = Infinity) {
             let allAssets = [],
                 page = 1,
                 totalPages = 1;
             do {
-                const res = await apiFetch(`<?= base_url('api/reports/assets') ?>?size=${BATCH}&page=${page}`);
+                const res = await apiFetch(`/api/reports/assets?size=${BATCH}&page=${page}`);
                 if (!res) throw new Error('Sesi habis, silakan login ulang.');
                 if (!res.ok) throw new Error('Gagal memuat data aset.');
 
@@ -427,9 +314,6 @@
         }
 
         // ── 3. FETCH & GENERATE PDF ──
-        const MAX_PDF = 500;
-        const BATCH = 100;
-
         async function fetchAndGeneratePDF() {
             const btn = document.getElementById('btnGenerate');
             const btnText = document.getElementById('btnText');
@@ -443,7 +327,7 @@
                     message: 'Mengambil data dari server, mohon tunggu...'
                 });
 
-                const resStats = await apiFetch('<?= base_url('api/reports/summary') ?>');
+                const resStats = await apiFetch('/api/reports/summary');
                 if (!resStats) throw new Error('Sesi habis, silakan login ulang.');
                 if (!resStats.ok) throw new Error('Gagal memuat ringkasan statistik.');
                 const reportData = (await resStats.json()).data;
@@ -452,7 +336,7 @@
                 buildPDF(reportData, allAssets);
 
                 try {
-                    await apiFetch('<?= base_url('api/audit/log') ?>', {
+                    await apiFetch('/api/audit/log', {
                         method: 'POST',
                         body: JSON.stringify({
                             action: 'EXPORT',
@@ -640,7 +524,7 @@
                 buildExcel(allAssets);
 
                 try {
-                    await apiFetch('<?= base_url('api/audit/log') ?>', {
+                    await apiFetch('/api/audit/log', {
                         method: 'POST',
                         body: JSON.stringify({
                             action: 'EXPORT',

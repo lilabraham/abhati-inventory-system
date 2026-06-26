@@ -8,7 +8,6 @@
   const STORAGE_KEY = 'sb_collapsed';
   const sidebar   = document.getElementById('app-sidebar');
   const toggleBtn = document.getElementById('sb-toggle');
-  const body      = document.querySelector('.has-sidebar');
 
   if (!sidebar || !toggleBtn) return;
 
@@ -19,7 +18,6 @@
 
   function setCollapsed(val) {
     sidebar.classList.toggle('collapsed', val);
-    body?.classList.toggle('sidebar-collapsed', val);
     toggleBtn.setAttribute('aria-expanded', String(!val));
     try { localStorage.setItem(STORAGE_KEY, val ? '1' : '0'); } catch (_) {}
     // When collapsing, close all open accordions (they hide via CSS but reset state)
@@ -98,14 +96,4 @@
   sidebar.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && isCollapsed()) sidebar.querySelector('.sb-nav-link')?.focus();
   });
-
-  // ─── CTA button wiring (UI only, data logic stays external) ──
-  // Both buttons dispatch a custom event; your existing fetch handler listens to it.
-  function dispatchAddTask() {
-    document.dispatchEvent(new CustomEvent('sidebar:addTask'));
-  }
-
-  document.getElementById('sb-add-task-btn')?.addEventListener('click', dispatchAddTask);
-  document.getElementById('sb-add-task-btn-mini')?.addEventListener('click', dispatchAddTask);
-
 })();

@@ -29,11 +29,8 @@
 
         <div class="col-md-4">
             <label class="form-label fw-semibold">Kondisi <span class="text-danger">*</span></label>
-            <select name="kondisi" class="form-select" required>
-                <option value="baik" selected>Baik</option>
-                <option value="rusak">Rusak</option>
-                <option value="dalam_perbaikan">Dalam Perbaikan</option>
-                <option value="tidak_aktif">Tidak Aktif</option>
+            <select name="kondisi" id="tambahKondisi" class="form-select" required>
+                <option value="">-- Pilih Kondisi --</option>
             </select>
         </div>
 
@@ -49,7 +46,8 @@
 
         <div class="col-md-3">
             <label class="form-label fw-semibold">Harga Beli (Rp)</label>
-            <input type="number" name="harga_beli" class="form-control" placeholder="15000000" min="0">
+            <input type="number" name="harga_beli" class="form-control" placeholder="15000000" min="0" step="1">
+            <div class="form-text">Contoh: 15000000 = Rp 15.000.000</div>
         </div>
 
         <div class="col-12">
@@ -67,3 +65,17 @@
         </button>
     </div>
 </form>
+
+<script>
+    (function() {
+        const sel = document.getElementById('tambahKondisi');
+        if (!sel || !window.KONDISI_CONFIG) return;
+        Object.entries(window.KONDISI_CONFIG).forEach(([val, cfg], i) => {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = cfg.label;
+            if (i === 0) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    })();
+</script>

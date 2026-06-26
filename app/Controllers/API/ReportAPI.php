@@ -4,7 +4,8 @@ namespace App\Controllers\API;
 
 use App\Controllers\BaseController;
 use App\Models\AssetModel;
-use App\Models\JSONResponseBuilder;
+use App\Models\RepairHistoryModel;
+use App\Libraries\JSONResponseBuilder;
 use App\Services\ReportService;
 use CodeIgniter\API\ResponseTrait;
 
@@ -16,48 +17,51 @@ class ReportAPI extends BaseController
     protected AssetModel $assetModel;
 
     private const ALLOWED_FIELDS = [
-        'kode_aset', 'merk', 'model', 'serial_number',
-        'pengguna', 'lokasi', 'kondisi', 'created_at',
+        'kode_aset',
+        'merk',
+        'model',
+        'serial_number',
+        'pengguna',
+        'lokasi',
+        'kondisi',
+        'created_at',
     ];
 
     public function __construct()
     {
-        $this->reportService = new ReportService();
         $this->assetModel    = new AssetModel();
+        $this->reportService = new ReportService($this->assetModel, new RepairHistoryModel());
     }
 
-    // FIX #1: guard assets.view — summary dipakai stat cards di halaman Aset (semua role)
     public function summary(): \CodeIgniter\HTTP\ResponseInterface
     {
-        if (! (auth()->user()?->can('assets.view') ?? false)) {
-            return $this->failForbidden('Anda tidak memiliki akses.');
+        if (! auth()->user()->can('assets.view')) {
+            return $this->respond(JSONResponseBuilder::make(403, false, 'Anda tidak memiliki akses.'), 403);
         }
 
-        $responseBuilder = new JSONResponseBuilder();
-        $totalAset       = $this->assetModel->countAllResults();
-        $data            = $this->reportService->getSummary($totalAset);
+        try {
+            $data = $this->reportService->getSummary();
+        } catch (\Throwable $e) {
+            log_message('error', 'Gagal mengambil summary report: ' . $e->getMessage());
+            return $this->respond(JSONResponseBuilder::make(500, false, 'Terjadi kesalahan internal.'), 500);
+        }
 
-        $responseBuilder->buildResponse(200, true, 'Summary retrieved successfully', $data);
-        return $this->respond($responseBuilder, $responseBuilder->code);
+        return $this->respond(JSONResponseBuilder::make(200, true, 'Summary retrieved successfully', $data), 200);
     }
 
     public function assets(): \CodeIgniter\HTTP\ResponseInterface
     {
-        if (! (auth()->user()?->can('reports.export') ?? false)) {
-            return $this->failForbidden('Anda tidak memiliki akses ke laporan.');
+        if (! auth()->user()->can('reports.export')) {
+            return $this->respond(JSONResponseBuilder::make(403, false, 'Anda tidak memiliki akses ke laporan.'), 403);
         }
 
-        $responseBuilder = new JSONResponseBuilder();
-
-        $page = max((int) ($this->request->getVar('page') ?? 1), 1);
-        // FIX #2: max 1 untuk hindari division by zero
-        $size   = max(min((int) ($this->request->getVar('size') ?? 15), 500), 1);
-        $search = $this->request->getVar('search');
-
+        $page    = max((int) ($this->request->getVar('page') ?? 1), 1);
+        $size    = max(min((int) ($this->request->getVar('size') ?? 15), 500), 1); // max 500 (untuk export semua data sekaligus)
+        $search  = $this->request->getVar('search');
+        $search  = $search ? substr(trim($search), 0, 100) : null;
         $sorters = $this->request->getVar('sort') ?? $this->request->getVar('sorters');
         $filters = $this->request->getVar('filter') ?? $this->request->getVar('filters');
 
-        // FIX #3: decode + validasi JSON, bail jika malformed
         if (is_string($sorters)) {
             $sorters = json_decode($sorters, true);
             if (json_last_error() !== JSON_ERROR_NONE) $sorters = null;
@@ -69,11 +73,12 @@ class ReportAPI extends BaseController
 
         if (! empty($filters) && is_array($filters)) {
             foreach ($filters as $filter) {
+                if (! is_array($filter)) continue;
                 $field = $filter['field'] ?? '';
-                $value = $filter['value'] ?? '';
+                $value = substr((string) ($filter['value'] ?? ''), 0, 200);
                 $type  = $filter['type'] ?? 'like';
 
-                if ($value === '' || $value === null) continue;
+                if ($value === '') continue;
                 if (! in_array($field, self::ALLOWED_FIELDS, true)) continue;
 
                 $type === 'like'
@@ -90,8 +95,10 @@ class ReportAPI extends BaseController
                 ->groupEnd();
         }
 
+        $sorted = false;
         if (! empty($sorters) && is_array($sorters)) {
             foreach ($sorters as $sorter) {
+                if (! is_array($sorter)) continue;    // ← guard
                 $field = $sorter['field'] ?? '';
                 $dir   = strtoupper($sorter['dir'] ?? 'DESC');
 
@@ -99,21 +106,25 @@ class ReportAPI extends BaseController
                 if (! in_array($dir, ['ASC', 'DESC'], true)) $dir = 'DESC';
 
                 $this->assetModel->orderBy($field, $dir);
+                $sorted = true;
             }
-        } else {
+        }
+        if (! $sorted) {
             $this->assetModel->orderBy('created_at', 'DESC');
         }
 
-        $assets = $this->assetModel->paginate($size, 'default', $page);
-        // FIX #4: null-safe pager access
-        $total  = $this->assetModel->pager?->getTotal() ?? 0;
+        try {
+            $assets = $this->assetModel->paginate($size, 'default', $page);
+            $total  = $this->assetModel->pager?->getTotal() ?? 0;
+        } catch (\Throwable $e) {
+            log_message('error', 'Gagal mengambil report assets: ' . $e->getMessage());
+            return $this->respond(JSONResponseBuilder::make(500, false, 'Terjadi kesalahan internal.'), 500);
+        }
 
-        $responseBuilder->buildResponse(200, true, 'Assets retrieved successfully', [
+        return $this->respond(JSONResponseBuilder::make(200, true, 'Assets retrieved successfully', [
             'data'      => $assets,
             'last_page' => max((int) ceil($total / $size), 1),
             'total'     => $total,
-        ]);
-
-        return $this->respond($responseBuilder, $responseBuilder->code);
+        ]), 200);
     }
 }

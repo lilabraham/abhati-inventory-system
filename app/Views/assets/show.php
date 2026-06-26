@@ -1,6 +1,7 @@
 <?php
 
 /** @var int $asset_id */
+/** @var array{repair: bool} $can */
 ?>
 
 
@@ -233,9 +234,11 @@
                     <span class="fw-semibold text-dark" style="font-size:.9rem;">Riwayat Perbaikan</span>
                     <span class="badge rounded-pill badge-soft-secondary px-2" id="repairCount">0</span>
                 </div>
-                <button class="btn-add-repair" data-bs-toggle="modal" data-bs-target="#modalRepair">
-                    <i class="bi bi-plus-lg me-1"></i> Tambah
-                </button>
+                <?php if ($can['repair']): ?>
+                    <button class="btn-add-repair" data-bs-toggle="modal" data-bs-target="#modalRepair">
+                        <i class="bi bi-plus-lg me-1"></i> Tambah
+                    </button>
+                <?php endif; ?>
             </div>
             <div class="card-body p-0" id="repairBody">
                 <div class="text-center py-4">
@@ -246,7 +249,8 @@
     </div>
 </div>
 
-<!-- ── Modal Tambah Riwayat Perbaikan ── -->
+<!-- ── Modal Tambah Riwayat Perbaikan — hanya repair.manage ── -->
+<?php if ($can['repair']): ?>
 <div class="modal fade" id="modalRepair" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -292,12 +296,8 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:.82rem;">Kondisi Laptop Setelah</label>
-                            <select name="kondisi_akhir" class="form-select rounded-3">
+                            <select name="kondisi_akhir" class="form-select rounded-3" id="selectKondisiAkhir">
                                 <option value="">— Tidak Diubah —</option>
-                                <option value="baik">Baik</option>
-                                <option value="rusak">Rusak</option>
-                                <option value="dalam_perbaikan">Dalam Perbaikan</option>
-                                <option value="tidak_aktif">Tidak Aktif</option>
                             </select>
                         </div>
                         <div class="col-12">
@@ -318,11 +318,21 @@
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <script>
-    const BASE_URL = '<?= base_url() ?>';
-    const ASSET_ID = <?= (int) $asset_id ?>;
+    const ASSET_ID  = <?= (int) $asset_id ?>;
+    const CAN_REPAIR = <?= json_encode($can['repair']) ?>;
 
+    // Populate kondisi_akhir select dari KONDISI_CONFIG (Single Source of Truth)
+    Object.entries(window.KONDISI_CONFIG).forEach(([k, v]) => {
+        const opt = document.createElement('option');
+        opt.value = k;
+        opt.textContent = v.label;
+        document.getElementById('selectKondisiAkhir').appendChild(opt);
+    });
+
+    // kondisiMap — langsung referensi KONDISI_CONFIG, tidak perlu copy
     const kondisiMap = Object.fromEntries(
         Object.entries(window.KONDISI_CONFIG).map(([k, v]) => [k, {
             cls: `badge-soft-${v.cls}`,
@@ -350,22 +360,6 @@
         String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
         .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-    const showToast = (msg, type = 'danger') => {
-        // Gunakan Bootstrap toast dari layout jika ada,
-        // fallback ke alert untuk show.php yang tidak punya #toastNotif
-        const el = document.getElementById('toastNotif');
-        if (el) {
-            const msgEl = document.getElementById('toastMessage');
-            el.className = `toast align-items-center border-0 text-white bg-${type}`;
-            msgEl.textContent = msg;
-            new bootstrap.Toast(el, {
-                delay: 3500
-            }).show();
-        } else {
-            alert(msg);
-        }
-    };
-
     const fmt = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
     const fmtDate = s => s ? new Date(s).toLocaleDateString('id-ID', {
         day: '2-digit',
@@ -374,7 +368,7 @@
     }) : '—';
 
     async function loadAsset() {
-        const res = await apiFetch(`${BASE_URL}api/assets/${ASSET_ID}`);
+        const res = await apiFetch(`/api/assets/${ASSET_ID}`);
         if (!res) {
             document.getElementById('assetInfoBody').innerHTML =
                 `<div class="text-center text-muted py-4">Gagal memuat data aset.</div>`;
@@ -450,7 +444,7 @@
     }
 
     async function loadRepairs() {
-        const res = await apiFetch(`${BASE_URL}api/assets/${ASSET_ID}/repairs`);
+        const res = await apiFetch(`/api/assets/${ASSET_ID}/repairs`);
         if (!res) return;
 
         const json = await res.json();
@@ -533,7 +527,7 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
 
-        const res = await apiFetch(`${BASE_URL}api/repairs`, {
+        const res = await apiFetch(`/api/repairs`, {
             method: 'POST',
             body: JSON.stringify(Object.fromEntries(new FormData(e.target))),
         });
@@ -555,8 +549,6 @@
     });
 
     // Init
-    window.addEventListener('load', () => {
-        loadAsset();
-        loadRepairs();
-    });
+    loadAsset();
+    loadRepairs();
 </script>
