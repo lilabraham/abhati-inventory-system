@@ -56,15 +56,6 @@
                 <div class="d-grid col-12 col-md-8 mx-auto m-3">
                     <button type="submit" class="btn btn-primary btn-block"><?= lang('Auth.login') ?></button>
                 </div>
-
-                <?php if (setting('Auth.allowMagicLinkLogins')) : ?>
-                    <p class="text-center"><?= lang('Auth.forgotPassword') ?> <a href="<?= url_to('magic-link') ?>"><?= lang('Auth.useMagicLink') ?></a></p>
-                <?php endif ?>
-
-                <?php if (setting('Auth.allowRegistration')) : ?>
-                    <p class="text-center"><?= lang('Auth.needAccount') ?> <a href="<?= url_to('register') ?>"><?= lang('Auth.register') ?></a></p>
-                <?php endif ?>
-
             </form>
         </div>
     </div>

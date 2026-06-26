@@ -4,7 +4,8 @@ namespace App\Controllers\API;
 
 use App\Controllers\BaseController;
 use App\Models\AssetModel;
-use App\Models\JSONResponseBuilder;
+use App\Models\AuditLogModel;
+use App\Libraries\JSONResponseBuilder;
 use CodeIgniter\API\ResponseTrait;
 use App\Services\ImportService;
 
@@ -12,119 +13,142 @@ class AssetAPI extends BaseController
 {
     use ResponseTrait;
 
-    protected $assetModel;
+    protected AssetModel    $assetModel;
+    protected AuditLogModel $auditLogModel;
+    protected ImportService $importService;
 
     public function __construct()
     {
-        $this->assetModel = new AssetModel();
+        $this->assetModel    = new AssetModel();
+        $this->auditLogModel = new AuditLogModel();
+        $this->importService = new ImportService($this->assetModel);
     }
 
-    /**
-     * Get all assets (Mendukung Tabulator / Datatables)
-     */
     public function index()
     {
-        $responseBuilder = new JSONResponseBuilder();
-
-        $page = (int) ($this->request->getVar('page') ?? 1);
-        $size = (int) ($this->request->getVar('size') ?? $this->request->getVar('per_page') ?? 15);
-        $search = $this->request->getVar('search');
-
-        $query = $this->assetModel
-            ->select('laptop_assets.*, (SELECT COUNT(*) FROM repair_history WHERE repair_history.asset_id = laptop_assets.id) as total_perbaikan');
-
-        if ($search) {
-            $query->groupStart()
-                ->like('laptop_assets.kode_aset', $search)
-                ->orLike('laptop_assets.merk', $search)
-                ->orLike('laptop_assets.model', $search)
-                ->groupEnd();
+        if (! auth()->user()->can('assets.view')) {
+            return $this->respond(JSONResponseBuilder::make(403, false, 'Akses ditolak.'), 403);
         }
 
-        $assets = $query->paginate($size, 'default', $page);
-        $total = $this->assetModel->pager->getTotal();
+        $page   = max(1, (int) ($this->request->getVar('page') ?? 1));
+        $size   = min(100, max(1, (int) ($this->request->getVar('size') ?? $this->request->getVar('per_page') ?? 15)));
+        $search = $this->request->getVar('search');
+        $search = $search ? substr(trim($search), 0, 100) : null;
 
-        $responseData = [
+        try {
+            $query = $this->assetModel
+                ->select('laptop_assets.*, (SELECT COUNT(*) FROM repair_history WHERE repair_history.asset_id = laptop_assets.id) as total_perbaikan');
+
+            if ($search) {
+                $query->groupStart()
+                    ->like('laptop_assets.kode_aset', $search)
+                    ->orLike('laptop_assets.merk', $search)
+                    ->orLike('laptop_assets.model', $search)
+                    ->groupEnd();
+            }
+
+            $assets = $query->paginate($size, 'default', $page);
+            $total  = $this->assetModel->pager?->getTotal() ?? 0;
+        } catch (\Throwable $e) {
+            log_message('error', 'AssetAPI::index() gagal: ' . $e->getMessage());
+            return $this->respond(JSONResponseBuilder::make(500, false, 'Terjadi kesalahan internal.'), 500);
+        }
+
+        return $this->respond(JSONResponseBuilder::make(200, true, 'Assets retrieved successfully', [
             'data'      => $assets,
-            'last_page' => ceil($total / $size),
-            'total'     => $total
-        ];
-
-        $responseBuilder->buildResponse(200, true, 'Assets retrieved successfully', $responseData);
-        return $this->respond($responseBuilder, $responseBuilder->code);
+            'last_page' => max((int) ceil($total / $size), 1),
+            'total'     => $total,
+        ]), 200);
     }
 
-    /**
-     * Get single asset detail
-     */
     public function show($id = null)
     {
-        $responseBuilder = new JSONResponseBuilder();
-
-        $asset = $this->assetModel->find($id);
-
-        if ($asset) {
-            $responseBuilder->buildResponse(200, true, 'Asset retrieved successfully', $asset);
-        } else {
-            $responseBuilder->buildResponse(404, false, 'Asset not found');
+        if (! auth()->user()->can('assets.view')) {
+            return $this->respond(JSONResponseBuilder::make(403, false, 'Akses ditolak.'), 403);
         }
 
-        return $this->respond($responseBuilder, $responseBuilder->code);
+        try {
+            $asset = $this->assetModel->find($id);
+        } catch (\Throwable $e) {
+            log_message('error', 'AssetAPI::show() gagal: ' . $e->getMessage());
+            return $this->respond(JSONResponseBuilder::make(500, false, 'Terjadi kesalahan internal.'), 500);
+        }
+
+        if (! $asset) {
+            return $this->respond(JSONResponseBuilder::make(404, false, 'Asset not found'), 404);
+        }
+
+        return $this->respond(JSONResponseBuilder::make(200, true, 'Asset retrieved successfully', $asset), 200);
     }
 
-    /**
-     * Create new asset
-     */
     public function create()
     {
-        $responseBuilder = new JSONResponseBuilder();
-
         if (! auth()->user()->can('assets.manage')) {
-            $responseBuilder->buildResponse(403, false, 'Akses ditolak.');
-            return $this->respond($responseBuilder, 403);
+            return $this->respond(JSONResponseBuilder::make(403, false, 'Akses ditolak.'), 403);
         }
 
-        $data = $this->request->getJSON(true);
+        $data = $this->request->getJSON(true) ?? [];
+        unset($data['created_by'], $data['id']);
+
         $rules = [
-            'kode_aset' => 'required|is_unique[laptop_assets.kode_aset]',
+            'kode_aset' => 'required|max_length[20]|is_unique[laptop_assets.kode_aset]',
             'merk'      => 'required|max_length[100]',
             'model'     => 'required|max_length[100]',
             'kondisi'   => 'required|in_list[baik,rusak,dalam_perbaikan,tidak_aktif]',
         ];
 
-        if (!$this->validate($rules, $data)) {
-            $responseBuilder->buildResponse(400, false, 'Validation failed', $this->validator->getErrors());
-            return $this->respond($responseBuilder, $responseBuilder->code);
+        if (! $this->validateData($data, $rules)) {
+            return $this->respond(JSONResponseBuilder::make(400, false, 'Validation failed', $this->validator->getErrors()), 400);
         }
 
-        if ($this->assetModel->insert($data)) {
-            $responseBuilder->buildResponse(201, true, 'Asset created successfully', ['id' => $this->assetModel->getInsertID()]);
-        } else {
-            $responseBuilder->buildResponse(400, false, 'Failed to create asset', $this->assetModel->errors());
+        if ($this->assetModel->withDeleted()->where('kode_aset', $data['kode_aset'])->countAllResults() > 0) {
+            return $this->respond(JSONResponseBuilder::make(400, false, 'Validation failed', [
+                'kode_aset' => 'Kode aset ini sudah pernah digunakan sebelumnya.',
+            ]), 400);
         }
 
-        return $this->respond($responseBuilder, $responseBuilder->code);
+        try {
+            if (! $this->assetModel->insert($data)) {
+                return $this->respond(JSONResponseBuilder::make(400, false, 'Failed to create asset', $this->assetModel->errors()), 400);
+            }
+
+            $insertId = $this->assetModel->getInsertID();
+
+            $this->auditLogModel->insertLog([
+                'action'      => 'CREATE',
+                'module'      => 'Asset Laptop',
+                'record_type' => 'assets',
+                'record_id'   => $insertId,
+                'description' => "Menambah aset baru: {$data['kode_aset']} ({$data['merk']} {$data['model']})",
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'AssetAPI::create() gagal: ' . $e->getMessage());
+            return $this->respond(JSONResponseBuilder::make(500, false, 'Terjadi kesalahan internal.'), 500);
+        }
+
+        return $this->respond(JSONResponseBuilder::make(201, true, 'Asset created successfully', ['id' => $insertId]), 201);
     }
 
-    /**
-     * Update existing asset
-     */
     public function update($id = null)
     {
-        $responseBuilder = new JSONResponseBuilder();
-
         if (! auth()->user()->can('assets.manage')) {
-            $responseBuilder->buildResponse(403, false, 'Akses ditolak.');
-            return $this->respond($responseBuilder, 403);
+            return $this->respond(JSONResponseBuilder::make(403, false, 'Akses ditolak.'), 403);
         }
 
-        $existingAsset = $this->assetModel->find($id);
-        if (!$existingAsset) {
-            $responseBuilder->buildResponse(404, false, 'Asset not found');
-            return $this->respond($responseBuilder, $responseBuilder->code);
+        try {
+            $existing = $this->assetModel->find($id);
+        } catch (\Throwable $e) {
+            log_message('error', 'AssetAPI::update() find gagal: ' . $e->getMessage());
+            return $this->respond(JSONResponseBuilder::make(500, false, 'Terjadi kesalahan internal.'), 500);
         }
 
-        $data = $this->request->getJSON(true);
+        if (! $existing) {
+            return $this->respond(JSONResponseBuilder::make(404, false, 'Asset not found'), 404);
+        }
+
+        $data = $this->request->getJSON(true) ?? [];
+        unset($data['created_by'], $data['id']);
+
         $rules = [
             'kode_aset' => "required|max_length[20]|is_unique[laptop_assets.kode_aset,id,{$id}]",
             'merk'      => 'required|max_length[100]',
@@ -132,76 +156,113 @@ class AssetAPI extends BaseController
             'kondisi'   => 'required|in_list[baik,rusak,dalam_perbaikan,tidak_aktif]',
         ];
 
-        if (!$this->validate($rules, $data)) {
-            $responseBuilder->buildResponse(400, false, 'Validation failed', $this->validator->getErrors());
-            return $this->respond($responseBuilder, $responseBuilder->code);
+        if (! $this->validateData($data, $rules)) {
+            return $this->respond(JSONResponseBuilder::make(400, false, 'Validation failed', $this->validator->getErrors()), 400);
         }
 
-        if ($this->assetModel->update($id, $data)) {
-            $responseBuilder->buildResponse(200, true, 'Asset updated successfully');
-        } else {
-            $responseBuilder->buildResponse(400, false, 'Failed to update asset', $this->assetModel->errors());
-        }
+        $dupeExists = $this->assetModel->withDeleted()
+            ->where('kode_aset', $data['kode_aset'])
+            ->where('id !=', $id)
+            ->countAllResults() > 0;
 
-        return $this->respond($responseBuilder, $responseBuilder->code);
-    }
-
-    /**
-     * Delete asset
-     */
-    public function delete($id = null)
-    {
-        $responseBuilder = new JSONResponseBuilder();
-
-        if (! auth()->user()->can('assets.manage')) {
-            $responseBuilder->buildResponse(403, false, 'Akses ditolak.');
-            return $this->respond($responseBuilder, 403);
-        }
-
-        $existingAsset = $this->assetModel->find($id);
-        if (!$existingAsset) {
-            $responseBuilder->buildResponse(404, false, 'Asset not found');
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        }
-
-        if ($this->assetModel->delete($id)) {
-            $responseBuilder->buildResponse(200, true, 'Asset deleted successfully');
-        } else {
-            $responseBuilder->buildResponse(400, false, 'Failed to delete asset');
-        }
-
-        return $this->respond($responseBuilder, $responseBuilder->code);
-    }
-
-    /**
-     * Import Excel
-     */
-    public function importExcel()
-    {
-        $responseBuilder = new JSONResponseBuilder();
-
-        if (! auth()->user()->can('imports.run')) {
-            $responseBuilder->buildResponse(403, false, 'Akses ditolak.');
-            return $this->respond($responseBuilder, 403);
-        }
-
-        $rows = $this->request->getJSON(true)['rows'] ?? [];
-
-        if (empty($rows)) {
-            $responseBuilder->buildResponse(400, false, 'Data rows kosong atau tidak ditemukan.');
-            return $this->respond($responseBuilder, $responseBuilder->code);
+        if ($dupeExists) {
+            return $this->respond(JSONResponseBuilder::make(400, false, 'Validation failed', [
+                'kode_aset' => 'Kode aset ini sudah pernah digunakan sebelumnya.',
+            ]), 400);
         }
 
         try {
-            $service = new ImportService($this->assetModel);
-            $result  = $service->processRows($rows);
-            $status  = $result['failed'] === 0 ? 200 : 207;
+            if (! $this->assetModel->update($id, $data)) {
+                return $this->respond(JSONResponseBuilder::make(400, false, 'Failed to update asset', $this->assetModel->errors()), 400);
+            }
 
-            $responseBuilder->buildResponse($status, true, "{$result['imported']} data imported.", $result);
-            return $this->respond($responseBuilder, $responseBuilder->code);
-        } catch (\RuntimeException $e) {
-            $responseBuilder->buildResponse(422, false, $e->getMessage());
-            return $this->respond($responseBuilder, $responseBuilder->code);
+            $this->auditLogModel->insertLog([
+                'action'      => 'UPDATE',
+                'module'      => 'Asset Laptop',
+                'record_type' => 'assets',
+                'record_id'   => (int) $id,
+                'description' => "Mengubah data aset: {$data['kode_aset']} ({$data['merk']} {$data['model']})",
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'AssetAPI::update() gagal: ' . $e->getMessage());
+            return $this->respond(JSONResponseBuilder::make(500, false, 'Terjadi kesalahan internal.'), 500);
+        }
+
+        return $this->respond(JSONResponseBuilder::make(200, true, 'Asset updated successfully'), 200);
+    }
+
+    public function delete($id = null)
+    {
+        if (! auth()->user()->can('assets.manage')) {
+            return $this->respond(JSONResponseBuilder::make(403, false, 'Akses ditolak.'), 403);
+        }
+
+        try {
+            $existing = $this->assetModel->find($id);
+        } catch (\Throwable $e) {
+            log_message('error', 'AssetAPI::delete() find gagal: ' . $e->getMessage());
+            return $this->respond(JSONResponseBuilder::make(500, false, 'Terjadi kesalahan internal.'), 500);
+        }
+
+        if (! $existing) {
+            return $this->respond(JSONResponseBuilder::make(404, false, 'Asset not found'), 404);
+        }
+
+        try {
+            if (! $this->assetModel->delete($id)) {
+                return $this->respond(JSONResponseBuilder::make(400, false, 'Failed to delete asset'), 400);
+            }
+
+            $this->auditLogModel->insertLog([
+                'action'      => 'DELETE',
+                'module'      => 'Asset Laptop',
+                'record_type' => 'assets',
+                'record_id'   => (int) $id,
+                'description' => "Menghapus aset: {$existing['kode_aset']} ({$existing['merk']} {$existing['model']})",
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'AssetAPI::delete() gagal: ' . $e->getMessage());
+            return $this->respond(JSONResponseBuilder::make(500, false, 'Terjadi kesalahan internal.'), 500);
+        }
+
+        return $this->respond(JSONResponseBuilder::make(200, true, 'Asset deleted successfully'), 200);
+    }
+
+    public function importExcel()
+    {
+        if (! auth()->user()->can('imports.run')) {
+            return $this->respond(JSONResponseBuilder::make(403, false, 'Akses ditolak.'), 403);
+        }
+
+        try {
+            $body        = $this->request->getJSON(true) ?? [];
+            $rows        = $body['rows']                 ?? [];
+            $isLast      = (bool) ($body['is_last_chunk']        ?? false);
+            $grandTotal  = (int)  ($body['grand_total_imported'] ?? 0);
+            $grandFailed = (int)  ($body['grand_total_failed']   ?? 0);
+
+            if (! is_array($rows)) {
+                return $this->respond(JSONResponseBuilder::make(400, false, 'Format data tidak valid.'), 400);
+            }
+
+            $result = $this->importService->processRows($rows);
+
+            // Tulis 1 log hanya di chunk terakhir, pakai grand total akumulasi dari client
+            if ($isLast) {
+                $finalImported = $grandTotal + ($result['imported'] ?? 0);
+                $finalFailed   = $grandFailed + ($result['failed']  ?? 0);
+                $this->auditLogModel->insertLog([
+                    'action'      => 'IMPORT',
+                    'target_type' => 'asset',
+                    'description' => "Import Excel: {$finalImported} berhasil, {$finalFailed} gagal.",
+                ]);
+            }
+
+            $status = 200;
+            return $this->respond(JSONResponseBuilder::make($status, true, "{$result['imported']} data imported.", $result), $status);
+        } catch (\Throwable $e) {
+            log_message('error', '[AssetAPI::importExcel] ' . $e->getMessage());
+            return $this->respond(JSONResponseBuilder::make(500, false, 'Terjadi kesalahan internal saat memproses import.'), 500);
         }
     }
 }

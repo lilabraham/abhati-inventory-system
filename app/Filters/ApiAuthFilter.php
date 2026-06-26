@@ -14,8 +14,8 @@ class ApiAuthFilter implements FilterInterface
             return response()
                 ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED)
                 ->setJSON([
-                    'status'  => 401,
-                    'error'   => 'false',
+                    'code'    => 401,
+                    'success' => false,
                     'message' => 'Akses ditolak. Silakan login terlebih dahulu.',
                     'data'    => null,
                 ]);

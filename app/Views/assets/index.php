@@ -5,100 +5,6 @@
 
 <style>
     /* ════════════════════════════════════════════════════
-       DESIGN TOKENS
-    ════════════════════════════════════════════════════ */
-    :root {
-        --clr-bg: #f0f2f5;
-        --clr-surface: #ffffff;
-        --clr-border: #eaecf0;
-        --clr-sep: #f2f4f7;
-
-        --clr-txt-900: #0d1117;
-        --clr-txt-600: #4b5563;
-        --clr-txt-400: #9ca3af;
-
-        --clr-blue: #3b82f6;
-        --clr-green: #22c55e;
-        --clr-red: #ef4444;
-        --clr-amber: #f59e0b;
-
-        --radius-card: 18px;
-        --radius-btn: 9px;
-        --shadow-card: 0 0 0 1px rgba(0, 0, 0, .045),
-            0 2px 4px rgba(0, 0, 0, .04),
-            0 10px 28px rgba(0, 0, 0, .07);
-        --shadow-hover: 0 0 0 1px rgba(0, 0, 0, .05),
-            0 4px 8px rgba(0, 0, 0, .06),
-            0 16px 36px rgba(0, 0, 0, .1);
-        --transition: all .18s cubic-bezier(.4, 0, .2, 1);
-    }
-
-    /* ════════════════════════════════════════════════════
-       PAGE HEADER
-    ════════════════════════════════════════════════════ */
-    .page-title {
-        font-size: 1.2rem;
-        font-weight: 800;
-        color: var(--clr-txt-900);
-        letter-spacing: -0.45px;
-        line-height: 1.2;
-        margin: 0 0 4px;
-    }
-
-    .page-subtitle {
-        font-size: 12.5px;
-        color: var(--clr-txt-400);
-        font-weight: 400;
-        margin: 0;
-    }
-
-    /* ── CTA Button ── */
-    .btn-tambah {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        background: var(--clr-txt-900);
-        color: #fff;
-        border: none;
-        padding: 9px 18px;
-        border-radius: var(--radius-btn);
-        font-size: 13px;
-        font-weight: 600;
-        letter-spacing: -0.1px;
-        cursor: pointer;
-        transition: var(--transition);
-        white-space: nowrap;
-    }
-
-    .btn-tambah:hover {
-        background: #1a2232;
-        color: #fff;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
-    }
-
-    .btn-tambah:active {
-        transform: translateY(0);
-        box-shadow: none;
-    }
-
-    /* ════════════════════════════════════════════════════
-       excel tombol
-    ════════════════════════════════════════════════════ */
-
-    .ghost-excel-btn {
-        color: #3d8b5e;
-        border-color: #3d8b5e;
-        transition: all 0.2s ease;
-    }
-
-    .ghost-excel-btn:hover {
-        background-color: #3d8b5e;
-        color: #fff;
-        box-shadow: 0 2px 8px rgba(61, 139, 94, 0.25);
-    }
-
-    /* ════════════════════════════════════════════════════
        STAT CARDS
     ════════════════════════════════════════════════════ */
     .stat-card {
@@ -123,7 +29,6 @@
         gap: 16px;
     }
 
-    /* Circular icon container */
     .icon-circle {
         width: 52px;
         height: 52px;
@@ -133,7 +38,6 @@
         justify-content: center;
         flex-shrink: 0;
         font-size: 1.25rem;
-        /* Each card overrides --ic-bg & --ic-clr */
         background: var(--ic-bg);
     }
 
@@ -141,7 +45,6 @@
         color: var(--ic-clr);
     }
 
-    /* Numbers */
     .stat-value {
         font-size: 2rem;
         font-weight: 800;
@@ -160,57 +63,13 @@
     }
 
     /* ════════════════════════════════════════════════════
-       TABLE CARD SHELL
-    ════════════════════════════════════════════════════ */
-    .table-card {
-        background: var(--clr-surface);
-        border-radius: var(--radius-card);
-        box-shadow: var(--shadow-card);
-        overflow: hidden;
-    }
-
-    /* Card header bar */
-    .table-card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 18px 24px 17px;
-        border-bottom: 1px solid var(--clr-sep);
-        background: var(--clr-surface);
-    }
-
-    .table-card-header-title {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        font-size: 13.5px;
-        font-weight: 700;
-        color: var(--clr-txt-900);
-        letter-spacing: -0.15px;
-    }
-
-    .table-card-header-title .dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--clr-blue);
-        flex-shrink: 0;
-    }
-
-    .table-card-header small {
-        font-size: 11.5px;
-        color: var(--clr-txt-400);
-    }
-
-    /* ════════════════════════════════════════════════════
-       TABLE — CLEAN MINIMAL
+       TABLE — CLEAN MINIMAL (asset-specific)
     ════════════════════════════════════════════════════ */
     .asset-table {
         width: 100%;
         border-collapse: collapse;
     }
 
-    /* thead: white bg, all-caps muted labels */
     .asset-table thead th {
         background: var(--clr-surface);
         color: var(--clr-txt-400);
@@ -225,7 +84,6 @@
         vertical-align: middle;
     }
 
-    /* tbody rows */
     .asset-table tbody tr {
         border-bottom: 1px solid var(--clr-sep);
         transition: background .12s;
@@ -247,7 +105,6 @@
         color: var(--clr-txt-600);
     }
 
-    /* Kode aset mono pill */
     .kode-pill {
         display: inline-block;
         background: #eff6ff;
@@ -260,7 +117,6 @@
         letter-spacing: 0.02em;
     }
 
-    /* Merk/model cell */
     .cell-merk {
         font-weight: 600;
         color: var(--clr-txt-900);
@@ -272,7 +128,6 @@
         margin-top: 1px;
     }
 
-    /* Perbaikan count chip */
     .chip-perbaikan {
         display: inline-flex;
         align-items: center;
@@ -284,132 +139,6 @@
         padding: 3px 9px;
         border-radius: 999px;
         font-variant-numeric: tabular-nums;
-    }
-
-    /* ════════════════════════════════════════════════════
-       SOFT PILL BADGES — WCAG AA text contrast
-    ════════════════════════════════════════════════════ */
-    .badge-soft {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 11.5px;
-        font-weight: 600;
-        padding: 4px 11px;
-        border-radius: 999px;
-        /* true pill */
-        letter-spacing: 0.02em;
-        white-space: nowrap;
-    }
-
-    .badge-soft::before {
-        content: '';
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        background: currentColor;
-    }
-
-    .badge-soft-success {
-        background: #dcfce7;
-        color: #15803d;
-    }
-
-    .badge-soft-danger {
-        background: #fee2e2;
-        color: #b91c1c;
-    }
-
-    .badge-soft-warning {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    /* dark amber — WCAG AA */
-    .badge-soft-secondary {
-        background: #f3f4f6;
-        color: #4b5563;
-    }
-
-    /* ════════════════════════════════════════════════════
-       GHOST ACTION BUTTONS
-    ════════════════════════════════════════════════════ */
-    .btn-action {
-        width: 30px;
-        height: 30px;
-        padding: 0;
-        border-radius: 8px;
-        border: none;
-        background: transparent;
-        /* ghost — no bg by default */
-        color: #c4cdd6;
-        /* very muted icon */
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13.5px;
-        cursor: pointer;
-        text-decoration: none;
-        transition: var(--transition);
-        line-height: 1;
-    }
-
-    .btn-action:hover {
-        transform: translateY(-1px);
-    }
-
-    .btn-action:active {
-        transform: translateY(0);
-    }
-
-    /* Color blooms on hover */
-    .btn-action-view:hover {
-        background: #eff6ff;
-        color: #2563eb;
-    }
-
-    .btn-action-edit:hover {
-        background: #fffbeb;
-        color: #d97706;
-    }
-
-    .btn-action-delete:hover {
-        background: #fef2f2;
-        color: #dc2626;
-    }
-
-    /* ════════════════════════════════════════════════════
-       PAGINATION
-    ════════════════════════════════════════════════════ */
-    #paginationContainer {
-        border-top: 1px solid var(--clr-sep);
-    }
-
-    #paginationContainer .page-link {
-        border-radius: 8px;
-        font-size: 12.5px;
-        border-color: var(--clr-border);
-        color: var(--clr-txt-600);
-        padding: 5px 11px;
-        transition: var(--transition);
-    }
-
-    #paginationContainer .page-item.active .page-link {
-        background: var(--clr-txt-900);
-        border-color: var(--clr-txt-900);
-        color: #fff;
-        box-shadow: 0 2px 8px rgba(13, 17, 23, .25);
-    }
-
-    #paginationContainer .page-link:hover:not(.active) {
-        background: var(--clr-sep);
-        color: var(--clr-txt-900);
-        border-color: var(--clr-border);
-    }
-
-    #paginationContainer .pagination {
-        gap: 3px;
     }
 </style>
 
@@ -546,8 +275,8 @@
 <?php if ($can['manage']): ?>
     <div class="modal fade" id="modalTambah" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
-                <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
+            <div class="modal-content">
+                <div class="modal-header">
                     <h5 class="modal-title fw-bold fs-6" id="modalTambahLabel">
                         <i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Aset Laptop
                     </h5>
@@ -562,8 +291,8 @@
 
     <div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
-                <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
+            <div class="modal-content">
+                <div class="modal-header">
                     <h5 class="modal-title fw-bold fs-6" id="modalEditLabel">
                         <i class="bi bi-pencil-square me-2 text-warning"></i>Edit Aset Laptop
                     </h5>
@@ -585,8 +314,8 @@
 <?php if ($can['import']): ?>
     <div class="modal fade" id="modalImport" tabindex="-1" aria-labelledby="modalImportLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content border-0" style="border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;">
-                <div class="modal-header" style="border-bottom:1px solid #f2f4f7; padding:20px 24px;">
+            <div class="modal-content">
+                <div class="modal-header">
                     <h5 class="modal-title fw-bold fs-6" id="modalImportLabel">
                         <i class="bi bi-file-earmark-excel me-2 text-success"></i>Import Data Aset
                     </h5>
@@ -608,7 +337,7 @@
                             <input type="file" name="file_excel" id="file_excel" class="form-control" accept=".xlsx" required>
                         </div>
                     </div>
-                    <div class="modal-footer" style="border-top:1px solid #f2f4f7; padding:16px 24px;">
+                    <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-success fw-semibold">
                             <i class="bi bi-cloud-upload me-1"></i> Upload Data
@@ -621,18 +350,29 @@
     </div>
 <?php endif; ?>
 
-<!-- ══════════════════════════════════════════════════════
-     TOAST — selalu dirender untuk semua role
-══════════════════════════════════════════════════════ -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
-    <div id="toastNotif" class="toast align-items-center border-0" role="alert"
-        style="border-radius:12px; min-width:260px; box-shadow:0 8px 32px rgba(0,0,0,.18);">
-        <div class="d-flex">
-            <div class="toast-body fw-semibold" id="toastMessage" style="font-size:13.5px;"></div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+<?php if ($can['manage']): ?>
+    <div class="modal fade" id="modalConfirmDelete" tabindex="-1" aria-labelledby="modalConfirmDeleteLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold fs-6" id="modalConfirmDeleteLabel">
+                        <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Konfirmasi Hapus
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0" style="font-size:13.5px;" id="confirmDeleteText"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger fw-semibold" id="btnConfirmDelete">
+                        <i class="bi bi-trash me-1"></i> Hapus
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+<?php endif; ?>
 
 <?php if ($can['import']): ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -643,31 +383,21 @@
 
     // ─── Helpers ────────────────────────────────────────────────
     const kondisiConfig = window.KONDISI_CONFIG;
-
-    const showToast = (message, type = 'success') => {
-        const el = document.getElementById('toastNotif');
-        const msg = document.getElementById('toastMessage');
-        el.className = `toast align-items-center border-0 text-white bg-${type}`;
-        msg.textContent = message;
-        new bootstrap.Toast(el, {
-            delay: 3000
-        }).show();
-    };
-
-    const escHtml = s => s == null ?
-        '' :
-        String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const escHtml = window.escHtml;
 
     const kondisiBadge = k => {
         const c = kondisiConfig[k];
-        return c ? `<span class="badge-soft badge-soft-${c.cls}">${c.label}</span>` :
+        return c ?
+            `<span class="badge-soft badge-soft-${escHtml(c.cls)}">${escHtml(c.label)}</span>` :
             `<span class="badge-soft badge-soft-secondary">${escHtml(k)}</span>`;
     };
 
     // ─── State ───────────────────────────────────────────────────
     let currentPage = 1;
     const perPage = 15;
+    let loadController = null;
+    let currentAssets = [];
+
 
     // ─── Spinner ─────────────────────────────────────────────────
     const showSpinner = () => {
@@ -682,15 +412,30 @@
 
     // ─── Load Assets ─────────────────────────────────────────────
     async function loadAssets(page = 1) {
+        if (loadController) loadController.abort();
+        loadController = new AbortController();
+        const signal = loadController.signal;
+
         currentPage = page;
         showSpinner();
 
-        const res = await apiFetch(`/api/assets?page=${page}&per_page=${perPage}`);
+        // AFTER
+        const res = await apiFetch(`/api/assets?page=${page}&per_page=${perPage}`, {
+            signal
+        });
+        if (signal.aborted) return;
         if (!res) {
             document.getElementById('assetTableBody').innerHTML = `
-        <tr><td colspan="8" class="text-center py-5 text-muted" style="font-size:13px;">
-            <i class="bi bi-wifi-off me-2 opacity-50"></i>Sesi habis. Silakan <a href="/login">login ulang</a>.
-        </td></tr>`;
+                <tr><td colspan="8" class="text-center py-5 text-muted" style="font-size:13px;">
+                <i class="bi bi-wifi-off me-2 opacity-50"></i>Sesi habis. Silakan <a href="/login">login ulang</a>.
+                </td></tr>`;
+            return;
+        }
+        if (res.status === 403) {
+            document.getElementById('assetTableBody').innerHTML = `
+                <tr><td colspan="8" class="text-center py-5 text-muted" style="font-size:13px;">
+                <i class="bi bi-shield-lock me-2 opacity-50"></i>Anda tidak memiliki akses untuk melihat data ini.
+                </td></tr>`;
             return;
         }
 
@@ -699,7 +444,7 @@
         if (!json.success) {
             document.getElementById('assetTableBody').innerHTML = `
         <tr><td colspan="8" class="text-center py-5 text-muted" style="font-size:13px;">
-            <i class="bi bi-exclamation-circle me-2 opacity-50"></i>${json.message ?? 'Gagal memuat data.'}
+            <i class="bi bi-exclamation-circle me-2 opacity-50"></i>${escHtml(json.message ?? 'Gagal memuat data.')}
         </td></tr>`;
             return;
         }
@@ -715,6 +460,7 @@
     }
 
     function renderTable(assets) {
+        currentAssets = assets;
         const tbody = document.getElementById('assetTableBody');
         if (!assets || assets.length === 0) {
             tbody.innerHTML = `
@@ -725,32 +471,33 @@
                 </tr>`;
             return;
         }
+
         tbody.innerHTML = assets.map((a, i) => `
             <tr>
                 <td class="ps-4 text-muted" style="font-size:12px; font-variant-numeric:tabular-nums;">${((currentPage - 1) * perPage) + i + 1}</td>
                 <td><span class="kode-pill">${escHtml(a.kode_aset)}</span></td>
-<td>
-    <div class="cell-merk">${escHtml(a.merk)}</div>
-    <div class="cell-model">${escHtml(a.model)}</div>
-</td>
-<td>${a.pengguna ? escHtml(a.pengguna) : '<span class="text-muted">—</span>'}</td>
-<td>${a.lokasi   ? escHtml(a.lokasi)   : '<span class="text-muted">—</span>'}</td>
+                <td>
+                    <div class="cell-merk">${escHtml(a.merk)}</div>
+                    <div class="cell-model">${escHtml(a.model)}</div>
+                </td>
+                <td>${a.pengguna ? escHtml(a.pengguna) : '<span class="text-muted">—</span>'}</td>
+                <td>${a.lokasi ? escHtml(a.lokasi) : '<span class="text-muted">—</span>'}</td>
                 <td>${kondisiBadge(a.kondisi)}</td>
                 <td class="text-center">
                     <span class="chip-perbaikan">
-    <i class="bi bi-wrench" style="font-size:10px;"></i>${a.total_perbaikan ?? 0}×
-</span>
+                        <i class="bi bi-wrench" style="font-size:10px;"></i>${a.total_perbaikan ?? 0}×
+                    </span>
                 </td>
                 <td class="text-center pe-4">
                     <div class="d-flex align-items-center justify-content-center gap-1">
-                        <a href="<?= base_url('data-aset/') ?>${a.id}" class="btn-action btn-action-view" title="Detail">
+                        <a href="/data-aset/${a.id}" class="btn-action btn-action-view" title="Detail">
                             <i class="bi bi-eye"></i>
                         </a>
                         ${CAN_MANAGE ? `
-                        <button class="btn-action btn-action-edit" onclick="openEditModal(${a.id})" title="Edit">
+                        <button class="btn-action btn-action-edit" data-id="${a.id}" data-action="edit" title="Edit">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="btn-action btn-action-delete" data-id="${a.id}" data-kode="${escHtml(a.kode_aset)}" onclick="deleteAsset(this.dataset.id, this.dataset.kode)" title="Hapus">
+                        <button class="btn-action btn-action-delete" data-id="${a.id}" data-action="delete" title="Hapus">
                             <i class="bi bi-trash"></i>
                         </button>
                         ` : ''}
@@ -758,6 +505,20 @@
                 </td>
             </tr>
         `).join('');
+
+        tbody.querySelectorAll('[data-action]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const {
+                    id,
+                    action
+                } = btn.dataset;
+                if (action === 'edit') openEditModal(id);
+                if (action === 'delete') {
+                    const asset = currentAssets.find(a => String(a.id) === id);
+                    deleteAsset(id, asset?.kode_aset ?? '');
+                }
+            });
+        });
     }
 
     function renderPagination({
@@ -768,7 +529,7 @@
         total
     }) {
         const container = document.getElementById('paginationContainer');
-        if (!total_pages || total_pages <= 1) {
+        if (!total_pages) {
             container.innerHTML = '';
             return;
         }
@@ -781,18 +542,22 @@
                 </small>
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item ${!has_previous ? 'disabled' : ''}">
-                        <button class="page-link" onclick="loadAssets(${current_page - 1})">
+                        <button class="page-link" data-page="${current_page - 1}">
                             <i class="bi bi-chevron-left"></i>
                         </button>
                     </li>
                     ${buildPageNumbers(current_page, total_pages)}
                     <li class="page-item ${!has_next ? 'disabled' : ''}">
-                        <button class="page-link" onclick="loadAssets(${current_page + 1})">
+                        <button class="page-link" data-page="${current_page + 1}">
                             <i class="bi bi-chevron-right"></i>
                         </button>
                     </li>
                 </ul>
             </div>`;
+
+        container.querySelectorAll('[data-page]').forEach(btn => {
+            btn.addEventListener('click', () => loadAssets(parseInt(btn.dataset.page)));
+        });
     }
 
     function buildPageNumbers(current, total) {
@@ -804,7 +569,7 @@
         for (let i = start; i <= end; i++) {
             pages.push(`
                 <li class="page-item ${i === current ? 'active' : ''}">
-                    <button class="page-link" onclick="loadAssets(${i})">${i}</button>
+                    <button class="page-link" data-page="${i}">${i}</button>
                 </li>`);
         }
         return pages.join('');
@@ -838,7 +603,7 @@
                 showToast('Asset berhasil ditambahkan!', 'success');
             } else {
                 const errMsg = json.data ?
-                    Object.values(json.data).join('\n') :
+                    Object.values(json.data).flat().join('\n') :
                     json.message;
                 showToast(errMsg || 'Terjadi kesalahan.', 'danger');
             }
@@ -866,12 +631,12 @@
         const a = json.data;
 
         const kondisiOptions = Object.keys(kondisiConfig)
-            .map(k => `<option value="${k}" ${a.kondisi === k ? 'selected' : ''}>${kondisiConfig[k].label}</option>`)
+            .map(k => `<option value="${escHtml(k)}" ${a.kondisi === k ? 'selected' : ''}>${escHtml(kondisiConfig[k].label)}</option>`)
             .join('');
 
         document.getElementById('editFormContainer').innerHTML = `
             <form id="formEditAset">
-                <input type="hidden" name="_asset_id" value="${a.id}">
+                <input type="hidden" name="_asset_id" value="${escHtml(String(a.id))}">
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Kode Aset <span class="text-danger">*</span></label>
@@ -958,8 +723,36 @@
     }
 
     // ─── Delete Asset ────────────────────────────────────────────
+    function confirmDelete(message) {
+        return new Promise(resolve => {
+            const modalEl = document.getElementById('modalConfirmDelete');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            document.getElementById('confirmDeleteText').textContent = message;
+
+            const btnConfirm = document.getElementById('btnConfirmDelete');
+            const onConfirm = () => {
+                cleanup();
+                modal.hide();
+                resolve(true);
+            };
+            const onCancel = () => {
+                cleanup();
+                resolve(false);
+            };
+            const cleanup = () => {
+                btnConfirm.removeEventListener('click', onConfirm);
+                modalEl.removeEventListener('hidden.bs.modal', onCancel);
+            };
+
+            btnConfirm.addEventListener('click', onConfirm);
+            modalEl.addEventListener('hidden.bs.modal', onCancel);
+            modal.show();
+        });
+    }
+
     async function deleteAsset(id, kode) {
-        if (!confirm(`Hapus aset "${kode}"?\nData yang dihapus tidak dapat dikembalikan.`)) return;
+        const confirmed = await confirmDelete(`Hapus aset "${kode}"? Data yang dihapus tidak dapat dikembalikan.`);
+        if (!confirmed) return;
 
         const res = await apiFetch(`/api/assets/${id}`, {
             method: 'DELETE'
@@ -1084,19 +877,23 @@
                     allErrors = [];
 
                 for (let i = 0; i < totalChunks; i++) {
-                    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Mengupload chunk ${i + 1}/${totalChunks}...`;
+                    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Mengupload bagian ${i + 1}/${totalChunks}...`;
 
+                    const isLast = i === totalChunks - 1;
                     const res = await apiFetch('/api/assets/import', {
                         method: 'POST',
                         body: JSON.stringify({
-                            rows: chunks[i]
+                            rows: chunks[i],
+                            is_last_chunk: isLast,
+                            grand_total_imported: isLast ? totalImported : 0,
+                            grand_total_failed: isLast ? totalFailed : 0,
                         }),
                     });
 
-                    if (!res) throw new Error(`Koneksi gagal pada chunk ${i + 1}/${totalChunks}. Upload dihentikan, silakan unggah ulang file untuk melanjutkan sisa data.`);
+                    if (!res) throw new Error(`Koneksi gagal pada bagian ${i + 1}/${totalChunks}. Upload dihentikan, silakan unggah ulang file untuk melanjutkan sisa data.`);
 
                     const json = await res.json();
-                    if (!res.ok && res.status !== 207) throw new Error(json.message || `Gagal pada chunk ${i + 1}/${totalChunks}. Upload dihentikan.`);
+                    if (!res.ok && res.status !== 207) throw new Error(json.message || `Gagal pada bagian ${i + 1}/${totalChunks}. Upload dihentikan.`);
 
                     const result = json.data;
                     totalImported += result.imported ?? 0;
@@ -1113,14 +910,14 @@
                     showToast(`Berhasil! ${totalImported} aset diimport, ${totalSkipped} dilewati (duplikat).`, 'success');
                 } else {
                     const errorItems = allErrors
-                        .map(err => `<li>Chunk ${err.chunk}, Baris ${err.row}: ${err.errors.join(', ')}</li>`)
+                        .map(err => `<li>Bagian ${escHtml(String(err.chunk))}, Baris ${escHtml(String(err.row))}: ${err.errors.map(escHtml).join(', ')}</li>`)
                         .join('');
                     document.getElementById('importErrorContainer').innerHTML = `
-                        <div class="alert alert-warning mt-2 mb-0" style="font-size:12.5px; border-radius:10px;">
-                            <strong>${totalImported} berhasil, ${totalSkipped} dilewati (duplikat).</strong>
-                            ${totalFailed} baris gagal:
-                            <ul class="mb-0 mt-1 ps-3">${errorItems}</ul>
-                        </div>`;
+                    <div class="alert alert-warning mt-2 mb-0" style="font-size:12.5px; border-radius:10px;">
+                        <strong>${totalImported} berhasil, ${totalSkipped} dilewati (duplikat).</strong>
+                        ${totalFailed} baris gagal:
+                        <ul class="mb-0 mt-1 ps-3">${errorItems}</ul>
+                    </div>`;
                     showToast(`${totalImported} berhasil, ${totalSkipped} dilewati, ${totalFailed} gagal.`, 'warning');
                 }
 
@@ -1131,7 +928,7 @@
                 showToast(error.message, 'danger');
                 document.getElementById('importErrorContainer').innerHTML = `
                     <div class="alert alert-danger mt-2 mb-0" style="font-size:12.5px; border-radius:10px;">
-                        ${error.message}
+                        ${escHtml(error.message)}
                     </div>`;
             } finally {
                 btn.disabled = false;

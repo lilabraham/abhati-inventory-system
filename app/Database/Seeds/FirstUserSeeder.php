@@ -43,18 +43,14 @@ class FirstUserSeeder extends Seeder
             );
         }
 
-        // ── Ambil ID user yang baru saja dibuat ───────────────────────────
-        $userId      = $users->getInsertID();
-        $savedUser   = $users->findById($userId);
-
-        // ── Aktifkan email user (bypass verifikasi untuk initial seed) ─────
+        // ── Aktifkan email user via Shield API (bypass verifikasi untuk initial seed) ─────
         // Tanpa ini, user tidak bisa login karena status belum "active".
-        $users->update($userId, ['active' => 1]);
+        // $user->id sudah ter-populate oleh CI4 Entity setelah save().
+        $users->activate($user);
 
         // ── Assign ke grup superadmin ──────────────────────────────────────
         // Grup 'superadmin' harus sudah terdefinisi di AuthGroups config.
-        // Fallback ke 'admin' jika nama grup berbeda di environment Anda.
-        $savedUser->addGroup('superadmin');
+        $user->addGroup('superadmin');
 
         echo "  [OK] User '{$email}' berhasil dibuat dan di-assign ke grup 'superadmin'.\n";
     }

@@ -10,7 +10,8 @@ class AuditLogModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $useTimestamps    = false; // JANGAN pakai useTimestamps — isi manual
+    protected $useTimestamps    = false;  // JANGAN pakai useTimestamps — isi manual
+    protected $useSoftDeletes   = false;  // Audit log tidak boleh dihapus — override delete() diblock
 
     protected $allowedFields = [
         'user_id',
@@ -25,9 +26,8 @@ class AuditLogModel extends Model
         'ip_address',
         'user_agent',
         'session_id',
-        'request_id',
+        'request_id', // opsional — caller pass manual jika ada X-Request-ID header
         'status',
-        'created_at',
     ];
 
     // Block operasi berbahaya di level Model
@@ -35,7 +35,8 @@ class AuditLogModel extends Model
     {
         return false;
     }
-    public function delete($id = null, bool $purge = false)
+
+    public function delete($id = null, bool $purge = false): bool
     {
         return false;
     }
@@ -45,19 +46,34 @@ class AuditLogModel extends Model
      */
     public function insertLog(array $data): bool
     {
-        $request = service('request');
+        $request      = service('request');
+        $loggedIn     = auth()->loggedIn();
+        $userId       = $loggedIn ? auth()->id() : null;
+        $username     = $loggedIn ? (auth()->user()->username ?? 'system') : 'system';
+        $rawSessionId = session_id();
 
-        $userId   = auth()->loggedIn() ? auth()->id() : null;
-        $username = auth()->loggedIn() ? (auth()->user()->username ?? 'system') : 'system';
+        $allowedCallerFields = [
+            'action',
+            'module',
+            'record_type',
+            'record_id',
+            'old_value',
+            'new_value',
+            'description',
+            'request_id',
+            'status',
+        ];
 
-        return (bool) $this->insert(array_merge([
+        $filteredData = array_intersect_key($data, array_flip($allowedCallerFields));
+
+        return (bool) $this->db->table($this->table)->insert(array_merge($filteredData, [
             'user_id'    => $userId,
             'username'   => $username,
             'ip_address' => $request->getIPAddress(),
             'user_agent' => substr((string) $request->getUserAgent(), 0, 500),
-            'session_id' => session_id() ?: null,
-            'status'     => 'success',
+            'session_id' => $rawSessionId ? hash('sha256', $rawSessionId) : null,
+            'status' => $filteredData['status'] ?? 'success',
             'created_at' => date('Y-m-d H:i:s'),
-        ], $data));
+        ]));
     }
 }

@@ -28,10 +28,12 @@ class AuthGroups extends ShieldAuthGroups
         'repairs.manage' => 'Tambah dan edit riwayat perbaikan',
         'reports.export' => 'Export laporan Excel dan PDF',
         'imports.run'    => 'Import data via Excel',
+        'users.view'     => 'Lihat daftar user',
+        'users.manage'   => 'Buat, ban, dan hapus user',
     ];
 
     public array $matrix = [
-        'superadmin' => ['assets.*', 'repairs.*', 'reports.*', 'imports.*'],
+        'superadmin' => ['assets.*', 'repairs.*', 'reports.*', 'imports.*', 'users.*'],
         'editor'     => [
             'assets.view',
             'repairs.view',

@@ -6,6 +6,8 @@ use App\Models\AssetModel;
 
 class ImportService
 {
+    private const MAX_ROWS_PER_BATCH = 100;
+
     private const HEADER_MAP = [
         'kode_aset'     => 'kode_aset',
         'merk'          => 'merk',
@@ -32,6 +34,12 @@ class ImportService
      */
     public function processRows(array $rows): array
     {
+        if (count($rows) > self::MAX_ROWS_PER_BATCH) {
+            throw new \InvalidArgumentException(
+                'Batch melebihi limit ' . self::MAX_ROWS_PER_BATCH . ' rows per request.'
+            );
+        }
+
         $imported    = 0;
         $skipped     = 0;
         $failed      = 0;
@@ -53,8 +61,9 @@ class ImportService
                 continue;
             }
 
-            // Duplikat di DB → skip (idempotent re-upload)
-            if ($this->assetModel->where('kode_aset', $row['kode_aset'])->countAllResults() > 0) {
+            // Duplikat di DB → skip (idempotent re-upload).
+            // withDeleted() wajib: kode_aset harus unik permanen, termasuk row yang sudah di-soft-delete.
+            if ($this->assetModel->withDeleted()->where('kode_aset', $row['kode_aset'])->countAllResults() > 0) {
                 $skipped++;
                 $seenInBatch[$row['kode_aset']] = true;
                 continue;
@@ -111,14 +120,46 @@ class ImportService
             }
 
             if ($dbCol === 'harga_beli' && !empty($value)) {
-                // Hapus separator ribuan (1.000.000 atau 1,000,000)
-                $value = preg_replace('/[^\d.]/', '', str_replace(',', '.', $value));
+                $value = $this->parseHargaBeli($value);
             }
 
             $row[$dbCol] = $value;
         }
 
         return $row;
+    }
+
+    /**
+     * Parse harga dari format umum spreadsheet ID:
+     * "1.000.000" (titik=ribuan), "1.000.000,50" (koma=desimal),
+     * atau plain numeric "1000000.50" / "1000000".
+     */
+    private function parseHargaBeli(string $value): string
+    {
+        $value = trim(str_replace(['Rp', 'rp', ' '], '', $value));
+
+        $hasComma = str_contains($value, ',');
+        $hasDot   = str_contains($value, '.');
+
+        if ($hasComma && $hasDot) {
+            // Format ID: titik=ribuan, koma=desimal → "1.000.000,50"
+            $value = str_replace('.', '', $value);
+            $value = str_replace(',', '.', $value);
+        } elseif ($hasComma && !$hasDot) {
+            // "1000000,50" → koma sebagai desimal
+            $value = str_replace(',', '.', $value);
+        } elseif ($hasDot && !$hasComma) {
+            // Ambigu: "1.000" bisa ribuan ATAU desimal.
+            // Heuristik: >2 digit setelah titik terakhir, atau >1 titik = ribuan.
+            $parts = explode('.', $value);
+            $lastPart = end($parts);
+            if (count($parts) > 2 || strlen($lastPart) !== 2) {
+                $value = str_replace('.', '', $value);
+            }
+            // else: biarkan sebagai desimal, contoh "1000000.50"
+        }
+
+        return preg_replace('/[^\d.]/', '', $value);
     }
 
     private function validateRow(array $row): array
