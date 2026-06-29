@@ -253,7 +253,9 @@ class AssetAPI extends BaseController
                 $finalFailed   = $grandFailed + ($result['failed']  ?? 0);
                 $this->auditLogModel->insertLog([
                     'action'      => 'IMPORT',
-                    'target_type' => 'asset',
+                    'module'      => 'Asset Laptop',
+                    'record_type' => 'assets',
+                    'record_id'   => 0,
                     'description' => "Import Excel: {$finalImported} berhasil, {$finalFailed} gagal.",
                 ]);
             }

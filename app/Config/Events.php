@@ -23,6 +23,30 @@ use CodeIgniter\HotReloader\HotReloader;
  *      Events::on('create', [$myInstance, 'myMethod']);
  */
 
+Events::on('login', static function (\CodeIgniter\Shield\Entities\User $user): void {
+    /** @var \App\Models\AuditLogModel $auditLogModel */
+    $auditLogModel = model(\App\Models\AuditLogModel::class);
+    $auditLogModel->insertLog([
+        'action'      => 'LOGIN',
+        'module'      => 'Auth',
+        'record_type' => 'users',
+        'record_id'   => (int) $user->id,
+        'description' => "User '{$user->username}' login.",
+    ]);
+});
+
+Events::on('logout', static function (\CodeIgniter\Shield\Entities\User $user): void {
+    /** @var \App\Models\AuditLogModel $auditLogModel */
+    $auditLogModel = model(\App\Models\AuditLogModel::class);
+    $auditLogModel->insertLog([
+        'action'      => 'LOGOUT',
+        'module'      => 'Auth',
+        'record_type' => 'users',
+        'record_id'   => (int) $user->id,
+        'description' => "User '{$user->username}' logout.",
+    ]);
+});
+
 Events::on('pre_system', static function (): void {
     if (ENVIRONMENT !== 'testing') {
         $value = ini_get('zlib.output_compression');
@@ -35,7 +59,7 @@ Events::on('pre_system', static function (): void {
             ob_end_flush();
         }
 
-        ob_start(static fn ($buffer) => $buffer);
+        ob_start(static fn($buffer) => $buffer);
     }
 
     /*

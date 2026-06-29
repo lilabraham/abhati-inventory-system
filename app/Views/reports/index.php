@@ -290,6 +290,27 @@
         const MAX_PDF = 500;
         const BATCH = 100;
 
+        async function withGenerateUI(label, fn) {
+            const btn = document.getElementById('btnGenerate');
+            const btnText = document.getElementById('btnText');
+            btn.disabled = true;
+            btnText.textContent = 'Memproses Data...';
+            try {
+                await fn();
+            } catch (err) {
+                console.error(err);
+                showToast({
+                    icon: 'bi-exclamation-triangle',
+                    type: 'error',
+                    title: 'Error',
+                    message: err.message,
+                });
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Generate & Unduh Laporan';
+            }
+        }
+
         async function fetchAllAssets(limit = Infinity) {
             let allAssets = [],
                 page = 1,
@@ -297,6 +318,7 @@
             do {
                 const res = await apiFetch(`/api/reports/assets?size=${BATCH}&page=${page}`);
                 if (!res) throw new Error('Sesi habis, silakan login ulang.');
+                if (res.status === 403) throw new Error('Akses ditolak.');
                 if (!res.ok) throw new Error('Gagal memuat data aset.');
 
                 const json = await res.json();
@@ -315,57 +337,29 @@
 
         // ── 3. FETCH & GENERATE PDF ──
         async function fetchAndGeneratePDF() {
-            const btn = document.getElementById('btnGenerate');
-            const btnText = document.getElementById('btnText');
-            try {
-                btn.disabled = true;
-                btnText.innerText = 'Memproses Data...';
-                showToast({
-                    icon: 'bi-hourglass-split',
-                    type: 'info',
-                    title: 'Memproses PDF',
-                    message: 'Mengambil data dari server, mohon tunggu...'
-                });
-
+            showToast({
+                icon: 'bi-hourglass-split',
+                type: 'info',
+                title: 'Memproses PDF',
+                message: 'Mengambil data dari server, mohon tunggu...',
+            });
+            await withGenerateUI('PDF', async () => {
                 const resStats = await apiFetch('/api/reports/summary');
                 if (!resStats) throw new Error('Sesi habis, silakan login ulang.');
+                if (resStats.status === 403) throw new Error('Akses ditolak.');
                 if (!resStats.ok) throw new Error('Gagal memuat ringkasan statistik.');
                 const reportData = (await resStats.json()).data;
 
                 const allAssets = await fetchAllAssets(MAX_PDF);
                 buildPDF(reportData, allAssets);
 
-                try {
-                    await apiFetch('/api/audit/log', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            action: 'EXPORT',
-                            module: 'Pusat Laporan',
-                            record_type: 'assets',
-                            description: 'Mengunduh data seluruh aset laptop ke dalam format PDF.'
-                        }),
-                    });
-                } catch (_) {}
-
                 showToast({
                     icon: 'bi-check-circle',
-                    type: 'info',
+                    type: 'success',
                     title: 'Berhasil',
-                    message: 'File PDF berhasil diunduh.'
+                    message: 'File PDF berhasil diunduh.',
                 });
-
-            } catch (err) {
-                console.error(err);
-                showToast({
-                    icon: 'bi-exclamation-triangle',
-                    type: 'error',
-                    title: 'Error',
-                    message: err.message
-                });
-            } finally {
-                btn.disabled = false;
-                btnText.innerText = 'Generate & Unduh Laporan';
-            }
+            });
         }
 
         // ── 4. BUILD PDF ──
@@ -506,54 +500,25 @@
 
         // ── 4b. FETCH & GENERATE EXCEL ──
         async function fetchAndGenerateExcel() {
-            const btn = document.getElementById('btnGenerate');
-            const btnText = document.getElementById('btnText');
-            try {
-                btn.disabled = true;
-                btnText.innerText = 'Memproses Data...';
-                showToast({
-                    icon: 'bi-hourglass-split',
-                    type: 'info',
-                    title: 'Memproses Excel',
-                    message: 'Mengambil data dari server, mohon tunggu...'
-                });
-
+            showToast({
+                icon: 'bi-hourglass-split',
+                type: 'info',
+                title: 'Memproses Excel',
+                message: 'Mengambil data dari server, mohon tunggu...',
+            });
+            await withGenerateUI('Excel', async () => {
                 const allAssets = await fetchAllAssets();
                 if (!allAssets.length) throw new Error('Data kosong.');
 
                 buildExcel(allAssets);
 
-                try {
-                    await apiFetch('/api/audit/log', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            action: 'EXPORT',
-                            module: 'Pusat Laporan',
-                            record_type: 'assets',
-                            description: `Mengunduh ${allAssets.length} data aset laptop ke dalam format Excel.`
-                        }),
-                    });
-                } catch (_) {}
-
                 showToast({
                     icon: 'bi-check-circle',
-                    type: 'info',
+                    type: 'success',
                     title: 'Berhasil',
-                    message: 'File Excel berhasil diunduh.'
+                    message: 'File Excel berhasil diunduh.',
                 });
-
-            } catch (err) {
-                console.error(err);
-                showToast({
-                    icon: 'bi-exclamation-triangle',
-                    type: 'error',
-                    title: 'Error',
-                    message: err.message
-                });
-            } finally {
-                btn.disabled = false;
-                btnText.innerText = 'Generate & Unduh Laporan';
-            }
+            });
         }
 
         // ── 4c. BUILD EXCEL ──
