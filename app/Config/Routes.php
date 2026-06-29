@@ -14,6 +14,8 @@ $routes->get('data-aset', 'AssetController::index', ['filter' => 'session']);
 $routes->get('data-aset/(:num)', 'AssetController::show/$1', ['filter' => 'session']);
 $routes->get('user-management', 'UserManagement::index', ['filter' => 'session']);
 $routes->get('laporan', 'ReportController::index', ['filter' => 'session']);
+$routes->get('audit', 'AuditController::index', ['filter' => 'session']);
+$routes->get('riwayat-perbaikan', 'RepairController::index', ['filter' => 'session']);
 
 // ============================================================
 // API ROUTES — dilindungi global session filter
@@ -39,7 +41,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\API', 'filter' => 'sessio
     $routes->get('reports/assets', 'ReportAPI::assets');
 
     // ── Audit Trail API ──
-    $routes->post('audit/log', 'AuditAPI::log');
+    $routes->get('audit', 'AuditAPI::index');
 
     // ── User Management API ──
     $routes->get('users', 'UserAPI::index');

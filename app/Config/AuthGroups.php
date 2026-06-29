@@ -17,7 +17,7 @@ class AuthGroups extends ShieldAuthGroups
         ],
         'editor' => [
             'title'       => 'Editor',
-            'description' => 'Hanya dapat menambah riwayat perbaikan.',
+            'description' => 'Dapat melihat aset, melihat dan menambah riwayat perbaikan.',
         ],
     ];
 
@@ -26,14 +26,15 @@ class AuthGroups extends ShieldAuthGroups
         'assets.manage'  => 'Tambah, edit, hapus asset',
         'repairs.view'   => 'Lihat riwayat perbaikan',
         'repairs.manage' => 'Tambah dan edit riwayat perbaikan',
-        'reports.export' => 'Export laporan Excel dan PDF',
+        'reports.view'   => 'Akses dan export laporan Excel dan PDF',
         'imports.run'    => 'Import data via Excel',
         'users.view'     => 'Lihat daftar user',
         'users.manage'   => 'Buat, ban, dan hapus user',
+        'audit.view'     => 'Lihat audit trail sistem',
     ];
 
     public array $matrix = [
-        'superadmin' => ['assets.*', 'repairs.*', 'reports.*', 'imports.*', 'users.*'],
+        'superadmin' => ['assets.*', 'repairs.*', 'reports.*', 'imports.*', 'users.*', 'audit.view'],
         'editor'     => [
             'assets.view',
             'repairs.view',

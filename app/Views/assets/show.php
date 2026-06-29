@@ -251,77 +251,77 @@
 
 <!-- ── Modal Tambah Riwayat Perbaikan — hanya repair.manage ── -->
 <?php if ($can['repair']): ?>
-<div class="modal fade" id="modalRepair" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="rounded-3 d-flex align-items-center justify-content-center"
-                        style="width:30px;height:30px;background:#fffbeb;">
-                        <i class="bi bi-tools text-warning" style="font-size:.82rem;"></i>
+    <div class="modal fade" id="modalRepair" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center"
+                            style="width:30px;height:30px;background:#fffbeb;">
+                            <i class="bi bi-tools text-warning" style="font-size:.82rem;"></i>
+                        </div>
+                        <h6 class="modal-title fw-bold mb-0">Tambah Riwayat Perbaikan</h6>
                     </div>
-                    <h6 class="modal-title fw-bold mb-0">Tambah Riwayat Perbaikan</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <form id="formRepair">
+                    <input type="hidden" name="asset_id" id="formAssetId" value="<?= (int) $asset_id ?>">
+                    <div class="modal-body px-4 py-3">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold" style="font-size:.82rem;">
+                                    Tanggal <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" name="tanggal" class="form-control rounded-3"
+                                    value="<?= date('Y-m-d') ?>" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold" style="font-size:.82rem;">
+                                    Deskripsi Kerusakan <span class="text-danger">*</span>
+                                </label>
+                                <textarea name="deskripsi" class="form-control rounded-3" rows="3"
+                                    placeholder="Jelaskan kerusakan dan tindakan yang dilakukan..." required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" style="font-size:.82rem;">Teknisi</label>
+                                <input name="teknisi" class="form-control rounded-3" placeholder="Nama teknisi">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" style="font-size:.82rem;">Status Akhir</label>
+                                <select name="status_akhir" class="form-select rounded-3">
+                                    <option value="selesai">Selesai</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="gagal">Gagal</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" style="font-size:.82rem;">Kondisi Laptop Setelah</label>
+                                <select name="kondisi_akhir" class="form-select rounded-3" id="selectKondisiAkhir">
+                                    <option value="">— Tidak Diubah —</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold" style="font-size:.82rem;">Biaya (Rp)</label>
+                                <input type="number" name="biaya" class="form-control rounded-3" value="0" min="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer px-4 py-3 gap-2">
+                        <button type="button" class="btn btn-sm rounded-3 px-3"
+                            style="background:#f1f5f9;color:#64748b;border:none;font-weight:600;"
+                            data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-sm btn-add-repair px-4">
+                            <i class="bi bi-save me-1"></i> Simpan
+                        </button>
+                    </div>
+                </form>
             </div>
-            <form id="formRepair">
-                <input type="hidden" name="asset_id" id="formAssetId" value="<?= (int) $asset_id ?>">
-                <div class="modal-body px-4 py-3">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label fw-semibold" style="font-size:.82rem;">
-                                Tanggal <span class="text-danger">*</span>
-                            </label>
-                            <input type="date" name="tanggal" class="form-control rounded-3"
-                                value="<?= date('Y-m-d') ?>" required>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold" style="font-size:.82rem;">
-                                Deskripsi Kerusakan <span class="text-danger">*</span>
-                            </label>
-                            <textarea name="deskripsi" class="form-control rounded-3" rows="3"
-                                placeholder="Jelaskan kerusakan dan tindakan yang dilakukan..." required></textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:.82rem;">Teknisi</label>
-                            <input name="teknisi" class="form-control rounded-3" placeholder="Nama teknisi">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:.82rem;">Status Akhir</label>
-                            <select name="status_akhir" class="form-select rounded-3">
-                                <option value="selesai">Selesai</option>
-                                <option value="pending">Pending</option>
-                                <option value="gagal">Gagal</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:.82rem;">Kondisi Laptop Setelah</label>
-                            <select name="kondisi_akhir" class="form-select rounded-3" id="selectKondisiAkhir">
-                                <option value="">— Tidak Diubah —</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold" style="font-size:.82rem;">Biaya (Rp)</label>
-                            <input type="number" name="biaya" class="form-control rounded-3" value="0" min="0">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer px-4 py-3 gap-2">
-                    <button type="button" class="btn btn-sm rounded-3 px-3"
-                        style="background:#f1f5f9;color:#64748b;border:none;font-weight:600;"
-                        data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-sm btn-add-repair px-4">
-                        <i class="bi bi-save me-1"></i> Simpan
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 <?php endif; ?>
 
 <script>
-    const ASSET_ID  = <?= (int) $asset_id ?>;
+    const ASSET_ID = <?= (int) $asset_id ?>;
     const CAN_REPAIR = <?= json_encode($can['repair']) ?>;
 
     // Populate kondisi_akhir select dari KONDISI_CONFIG (Single Source of Truth)
@@ -355,11 +355,6 @@
         },
     };
 
-    const escHtml = s => s == null ?
-        '' :
-        String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
     const fmt = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
     const fmtDate = s => s ? new Date(s).toLocaleDateString('id-ID', {
         day: '2-digit',
@@ -375,13 +370,18 @@
             return;
         }
 
-        const json = await res.json();
-        if (!json.success) {
+        if (res.status === 403) {
             document.getElementById('assetInfoBody').innerHTML =
-                `<div class="text-center text-muted py-4">${json.message ?? 'Gagal memuat data aset.'}</div>`;
+                `<div class="text-center text-muted py-4">Akses ditolak.</div>`;
             return;
         }
 
+        const json = await res.json();
+        if (!json.success) {
+            document.getElementById('assetInfoBody').innerHTML =
+                `<div class="text-center text-muted py-4">${escHtml(json.message ?? 'Gagal memuat data aset.')}</div>`;
+            return;
+        }
         const a = json.data;
 
         // Update page title
@@ -447,8 +447,16 @@
         const res = await apiFetch(`/api/assets/${ASSET_ID}/repairs`);
         if (!res) return;
 
+        if (res.status === 403) {
+            showToast('Akses ditolak.', 'danger');
+            return;
+        }
+
         const json = await res.json();
-        if (!json.success) return;
+        if (!json.success) {
+            showToast(json.message ?? 'Gagal memuat riwayat perbaikan.', 'danger');
+            return;
+        }
 
         const repairs = Array.isArray(json.data) ? json.data : (json.data?.data ?? []);
         document.getElementById('repairCount').textContent = repairs.length;
@@ -521,7 +529,8 @@
     }
 
     // ── Form submit repair ──
-    document.getElementById('formRepair').addEventListener('submit', async e => {
+    const formRepair = document.getElementById('formRepair');
+    if (formRepair) formRepair.addEventListener('submit', async e => {
         e.preventDefault();
         const btn = e.target.querySelector('[type="submit"]');
         btn.disabled = true;
@@ -536,6 +545,11 @@
         btn.innerHTML = '<i class="bi bi-save me-1"></i> Simpan';
         if (!res) return;
 
+        if (res.status === 403) {
+            showToast('Akses ditolak.', 'danger');
+            return;
+        }
+
         const json = await res.json();
         if (json.success) {
             bootstrap.Modal.getInstance(document.getElementById('modalRepair')).hide();
@@ -543,8 +557,8 @@
             document.querySelector('[name="tanggal"]').value = new Date().toISOString().split('T')[0];
             loadRepairs();
         } else {
-            const errMsg = json.data ? Object.values(json.data).join('\n') : json.message;
-            showToast(errMsg || 'Terjadi kesalahan.');
+            const errMsg = json.data ? Object.values(json.data).flat().join('\n') : json.message;
+            showToast(errMsg || 'Terjadi kesalahan.', 'danger');
         }
     });
 

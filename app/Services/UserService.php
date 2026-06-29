@@ -57,6 +57,7 @@ class UserService
         }
 
         $user = $provider->findById($provider->getInsertID());
+
         $user->addGroup(self::ROLE_EDITOR);
         $provider->activate($user);
 
@@ -68,7 +69,7 @@ class UserService
 
         $this->auditLogModel->insertLog([
             'action'      => 'CREATE',
-            'module'      => 'users',
+            'module'      => 'User Management',
             'record_type' => 'users',
             'record_id'   => $user->id,
             'description' => "User '{$user->username}' dibuat dengan role editor.",
@@ -90,7 +91,7 @@ class UserService
 
         $this->auditLogModel->insertLog([
             'action'      => 'UPDATE',
-            'module'      => 'users',
+            'module'      => 'User Management',
             'record_type' => 'users',
             'record_id'   => $id,
             'description' => "User '{$user->username}' di-ban. Alasan: {$reason}",
@@ -98,7 +99,7 @@ class UserService
 
         return true;
     }
-    
+
     public function unban(int $id): bool|string
     {
         $user = $this->provider()->findById($id);
@@ -111,7 +112,7 @@ class UserService
 
         $this->auditLogModel->insertLog([
             'action'      => 'UPDATE',
-            'module'      => 'users',
+            'module'      => 'User Management',
             'record_type' => 'users',
             'record_id'   => $id,
             'description' => "User '{$user->username}' di-unban.",
@@ -120,7 +121,6 @@ class UserService
         return true;
     }
 
-    // AFTER
     public function delete(int $id): bool|string
     {
         $provider = $this->provider();
@@ -135,7 +135,7 @@ class UserService
         if ($result) {
             $this->auditLogModel->insertLog([
                 'action'      => 'DELETE',
-                'module'      => 'users',
+                'module'      => 'User Management',
                 'record_type' => 'users',
                 'record_id'   => $id,
                 'description' => "User '{$username}' dihapus (soft delete).",
