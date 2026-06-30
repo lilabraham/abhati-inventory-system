@@ -29,17 +29,6 @@ $current_uri = uri_string();
 
     <div class="sb-section-label">Main</div>
 
-    <?php if (auth()->user()?->can('repairs.view') ?? false) : ?>
-      <div class="sb-nav-item">
-        <a href="<?= base_url('riwayat-perbaikan') ?>"
-          class="sb-nav-link <?= str_starts_with($current_uri, 'riwayat-perbaikan') ? 'active' : '' ?>">
-          <span class="sb-nav-icon"><i class="bi bi-wrench-adjustable" aria-hidden="true"></i></span>
-          <span class="sb-nav-text">Riwayat Perbaikan</span>
-        </a>
-        <span class="sb-tooltip">Riwayat Perbaikan</span>
-      </div>
-    <?php endif ?>
-
     <!-- Aset Laptop -->
     <!-- FIX #4: str_starts_with agar nested route data-aset/1 ikut aktif -->
     <div class="sb-nav-item">
@@ -50,6 +39,17 @@ $current_uri = uri_string();
       </a>
       <span class="sb-tooltip">Aset Laptop</span>
     </div>
+
+    <?php if (auth()->user()?->can('repairs.view') ?? false) : ?>
+      <div class="sb-nav-item">
+        <a href="<?= base_url('riwayat-perbaikan') ?>"
+          class="sb-nav-link <?= str_starts_with($current_uri, 'riwayat-perbaikan') ? 'active' : '' ?>">
+          <span class="sb-nav-icon"><i class="bi bi-wrench-adjustable" aria-hidden="true"></i></span>
+          <span class="sb-nav-text">Riwayat Perbaikan</span>
+        </a>
+        <span class="sb-tooltip">Riwayat Perbaikan</span>
+      </div>
+    <?php endif ?>
 
     <!-- FIX #1: Pusat Laporan hanya untuk reports.export -->
     <?php if (auth()->user()?->can('reports.export') ?? false) : ?>
@@ -63,15 +63,8 @@ $current_uri = uri_string();
       </div>
     <?php endif ?>
 
-    <?php if (auth()->user()?->can('audit.view') ?? false) : ?>
-      <div class="sb-nav-item">
-        <a href="<?= base_url('audit') ?>"
-          class="sb-nav-link <?= str_starts_with($current_uri, 'audit') ? 'active' : '' ?>">
-          <span class="sb-nav-icon"><i class="bi bi-journal-text" aria-hidden="true"></i></span>
-          <span class="sb-nav-text">Audit Trail</span>
-        </a>
-        <span class="sb-tooltip">Audit Trail</span>
-      </div>
+    <?php if ((auth()->user()?->can('users.manage') ?? false) || (auth()->user()?->can('audit.view') ?? false)) : ?>
+      <div class="sb-section-label">System</div>
     <?php endif ?>
 
     <?php if (auth()->user()?->can('users.manage') ?? false) : ?>
@@ -82,6 +75,17 @@ $current_uri = uri_string();
           <span class="sb-nav-text">User Management</span>
         </a>
         <span class="sb-tooltip">User Management</span>
+      </div>
+    <?php endif ?>
+
+    <?php if (auth()->user()?->can('audit.view') ?? false) : ?>
+      <div class="sb-nav-item">
+        <a href="<?= base_url('audit') ?>"
+          class="sb-nav-link <?= str_starts_with($current_uri, 'audit') ? 'active' : '' ?>">
+          <span class="sb-nav-icon"><i class="bi bi-journal-text" aria-hidden="true"></i></span>
+          <span class="sb-nav-text">Audit Trail</span>
+        </a>
+        <span class="sb-tooltip">Audit Trail</span>
       </div>
     <?php endif ?>
 

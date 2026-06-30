@@ -47,7 +47,7 @@ class DummyAssetSeeder extends Seeder
         // Insert sekaligus 100 data (InsertBatch lebih cepat dari Insert biasa)
         $this->db->table('laptop_assets')->insertBatch($laptops);
 
-        // 4. Generate Data History Perbaikan secara acak untuk 20 laptop pertama
+        // Generate Data History Perbaikan secara acak untuk 20 laptop pertama
         $repairs = [];
         for ($j = 1; $j <= 20; $j++) {
             $repairs[] = [
